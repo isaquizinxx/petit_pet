@@ -23,6 +23,7 @@ $flashes = obter_flashes();
     <meta name="description" content="<?= e($descricaoPagina) ?>">
     <meta name="theme-color" content="#ffd1e8">
     <title><?= e($titulo !== '' ? $titulo . ' | ' . APP_NOME : APP_NOME) ?></title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="assets/css/fontes.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>

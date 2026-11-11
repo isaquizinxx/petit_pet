@@ -82,6 +82,7 @@ petit_pet/
 │   │   ├── fontes.css         Fontes locais (@font-face)
 │   │   └── style.css          Estilos da interface
 │   ├── fonts/                 Arquivos .woff2 (Cherry Bomb One e Nunito Sans)
+│   ├── favicon.svg            Ícone da aba do navegador
 │   └── js/app.js
 ├── database/
 │   ├── schema.sql             Instalação nova
