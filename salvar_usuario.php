@@ -1,50 +1,83 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
 
-// salvar_usuario.php é responsável por receber os dados do formulário de cadastro de um novo usuário e inserir o registro correspondente no banco de dados. Ele protege a página para que apenas usuários logados possam acessar, conecta-se ao banco de dados, recebe os dados enviados via POST, verifica se o e-mail já está cadastrado, criptografa a senha e executa a inserção do novo usuário na tabela de usuários. Após salvar o usuário, o usuário é redirecionado de volta para a página de login.
-// Recebe os dados do formulário de cadastro e salva o usuário
-// no banco.
-// Conceitos: POST, password_hash, MySQL, INSERT, verificação
-// de E-mail duplicado.
-
-// Inclui o arquivo de conexão com o banco de dados.
-include('conexao.php');
-
-// Recebe os dados enviados pelo formulário via metodo POST.
-$nome = $_POST['nome'];
-$email = $_POST['email'];
-$senha = $_POST['senha'];
-
-$sqlVerificar = "SELECT id FROM usuarios WHERE email = '$email' ";
-
-$resultadoVerificar = mysqli_query($conexao, $sqlVerificar);
-
-if (mysqli_num_rows($resultadoVerificar) > 0) {
-    // Se o email já existe,  redirenciona de volta ao cadastro
-    // com mensagem de erro
-    header("Location: cadastro.php?erro=email");
-    exit();
-
+if (usuario_logado()) {
+    redirecionar('painel.php');
 }
 
-// ===============================================================
-// CRIPTOGRAFIA DA SENHA
-// Nunca armazenamos a senha em texto puro no banco
-// ===============================================================
-// password_hash() gera um hash seguro da senha
-// PASSWORD_DEFAULT usa um algoritimo bcrypt (padrão PHP)
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    flash('erro', 'Envie o formulário de cadastro para continuar.');
+    redirecionar('cadastro.php');
+}
+
+exigir_csrf('cadastro.php');
+
+$nome = valor_post('nome');
+$email = normalizar_email(valor_post('email'));
+$senha = valor_post_bruto('senha');
+$confirmacao = valor_post_bruto('senha_confirmacao');
+
+$dados = [
+    'nome' => $nome,
+    'email' => $email,
+    'senha' => $senha,
+    'senha_confirmacao' => $confirmacao,
+];
+
+$erros = validar_cadastro_usuario($dados);
+
+if ($erros) {
+    $_SESSION['cadastro_dados'] = ['nome' => $nome, 'email' => $email];
+    $_SESSION['cadastro_erros'] = $erros;
+    flash('erro', 'Confira os campos destacados e tente novamente.');
+    redirecionar('cadastro.php');
+}
+
+try {
+    $verificacao = db()->prepare('SELECT id FROM usuarios WHERE email = ? LIMIT 1');
+    $verificacao->bind_param('s', $email);
+    $verificacao->execute();
+    $emailJaExiste = $verificacao->get_result()->num_rows > 0;
+    $verificacao->close();
+} catch (Throwable $erro) {
+    error_log('[Petit Pet] Falha ao verificar e-mail no cadastro: ' . $erro->getMessage());
+    flash('erro', 'Não foi possível concluir o cadastro agora. Tente novamente.');
+    redirecionar('cadastro.php');
+}
+
+if ($emailJaExiste) {
+    $_SESSION['cadastro_dados'] = ['nome' => $nome, 'email' => $email];
+    $_SESSION['cadastro_erros'] = ['email' => 'Este e-mail já está cadastrado. Faça login para continuar.'];
+    flash('erro', 'Este e-mail já está cadastrado.');
+    redirecionar('cadastro.php');
+}
+
 $senhaCriptografada = password_hash($senha, PASSWORD_DEFAULT);
+if ($senhaCriptografada === false) {
+    error_log('[Petit Pet] Falha ao gerar o hash da senha.');
+    flash('erro', 'Não foi possível concluir o cadastro agora. Tente novamente.');
+    redirecionar('cadastro.php');
+}
 
-//================================================================
-//INSERÇÃO NO BANCO (CREATE DO CRUD)
-//================================================================
+try {
+    $comando = db()->prepare('INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)');
+    $comando->bind_param('sss', $nome, $email, $senhaCriptografada);
+    $comando->execute();
+    $comando->close();
+} catch (mysqli_sql_exception $erro) {
+    error_log('[Petit Pet] Falha ao cadastrar usuário: ' . $erro->getMessage());
 
-$sql = "INSERT INTO  usuarios (nome, email, senha) VALUES
-('$nome', '$email', '$senhaCriptografada')";
+    if ((int) $erro->getCode() === 1062 || strpos($erro->getMessage(), 'Duplicate entry') !== false) {
+        $_SESSION['cadastro_dados'] = ['nome' => $nome, 'email' => $email];
+        $_SESSION['cadastro_erros'] = ['email' => 'Este e-mail já está cadastrado. Faça login para continuar.'];
+        flash('erro', 'Este e-mail já está cadastrado.');
+    } else {
+        flash('erro', 'Não foi possível concluir o cadastro agora. Tente novamente.');
+    }
 
-//Executa o INSERT no banco de dados
-mysqli_query($conexao, $sql);
+    redirecionar('cadastro.php');
+}
 
-// Redireciona o usuário para a página de login após um cadastro
-// bem-sucedido.
-header("Location: login.php");
-exit();
+unset($_SESSION['cadastro_dados'], $_SESSION['cadastro_erros']);
+flash('sucesso', 'Conta criada com sucesso! Faça login para continuar.');
+redirecionar('login.php');

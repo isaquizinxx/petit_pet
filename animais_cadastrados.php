@@ -1,106 +1,191 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
+exigir_login();
 
-// Exibe os pets cadastrados e permite editar ou remover seus registros.
-// Protege a página: só usuários logados podem consultar os pets.
-include("verificar_sessao.php");
+$busca = is_string($_GET['busca'] ?? null) ? trim($_GET['busca']) : '';
+$status = is_string($_GET['status'] ?? null) ? $_GET['status'] : '';
 
-// inclui a conexão do banco de dados
-include("conexao.php");
-
-// Cria um token reutilizável pelos formulários de edição e exclusão desta sessão.
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+if (!in_array($status, pet_status_validos(), true)) {
+    $status = '';
 }
 
-// Consulta os registros cadastrados.
-$sql = "SELECT * FROM livros";
+$pagina = filter_input(INPUT_GET, 'pagina', FILTER_VALIDATE_INT);
+$pagina = ($pagina && $pagina > 0) ? (int) $pagina : 1;
+$porPagina = 8;
 
-// Executa a consulta e guarda o resultado 
-$resultado = mysqli_query($conexao, $sql);
+$pets = [];
+$total = 0;
+$totalPaginas = 1;
+$erroConsulta = false;
 
-// Converte códigos de retorno em mensagens fixas para não exibir conteúdo da URL.
-$mensagensSucesso = [
-    'cadastro' => 'Pet cadastrado com sucesso!',
-    'atualizacao' => 'Cadastro do pet atualizado com sucesso!',
-    'exclusao' => 'Pet removido com sucesso!',
-];
-$mensagensErro = [
-    'metodo' => 'A operação solicitada não é válida.',
-    'sessao' => 'Sua sessão expirou. Atualize a página e tente novamente.',
-    'id' => 'O identificador do pet não é válido.',
-    'consulta' => 'Não foi possível consultar os dados do pet.',
-    'nao_encontrado' => 'O pet solicitado não foi encontrado.',
-    'campos' => 'Os dados enviados não são válidos.',
-    'excluir' => 'Não foi possível remover o pet. Tente novamente.',
-];
-$codigoSucesso = $_GET['sucesso'] ?? '';
-$codigoErro = $_GET['erro'] ?? '';
-$mensagemSucesso = is_string($codigoSucesso) ? ($mensagensSucesso[$codigoSucesso] ?? '') : '';
-$mensagemErro = is_string($codigoErro) ? ($mensagensErro[$codigoErro] ?? '') : '';
+try {
+    $total = contar_pets($busca, $status);
+    $totalPaginas = max(1, (int) ceil($total / $porPagina));
 
+    if ($pagina > $totalPaginas) {
+        $pagina = $totalPaginas;
+    }
+
+    $pets = listar_pets($busca, $status, $pagina, $porPagina);
+} catch (Throwable $erro) {
+    error_log('[Petit Pet] Falha ao listar pets: ' . $erro->getMessage());
+    $erroConsulta = true;
+}
+
+$montarUrl = static function (int $numeroPagina) use ($busca, $status): string {
+    $parametros = [];
+    if ($busca !== '') {
+        $parametros['busca'] = $busca;
+    }
+    if ($status !== '') {
+        $parametros['status'] = $status;
+    }
+    $parametros['pagina'] = $numeroPagina;
+
+    return 'animais_cadastrados.php?' . http_build_query($parametros);
+};
+
+$temFiltro = $busca !== '' || $status !== '';
+$inicioPaginas = max(1, $pagina - 2);
+$fimPaginas = min($totalPaginas, $pagina + 2);
+
+$titulo = 'Pets cadastrados';
+$subtitulo = 'Consulte, busque e acompanhe a situação de cada atendimento.';
+$eyebrow = 'Pets';
+$containerClasse = 'container container-largo';
+$paginaAtiva = 'pets';
+$descricaoPagina = 'Lista de pets cadastrados na Petit Pet.';
+
+require __DIR__ . '/includes/layout/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pets cadastrados | Petit Pet</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+<?php if ($erroConsulta): ?>
+    <div class="mensagem mensagem-erro" role="alert">
+        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <p>Não foi possível consultar os pets agora. Tente atualizar a página.</p>
+    </div>
+<?php endif; ?>
 
-<body>
-
-    <!-- Container mais largo para acomodar a tabela -->
-    <div class="container container-largo">
-        <h1>Pets cadastrados</h1>
-        <p class="subtitulo">Acompanhe os amigos e a situação de cada atendimento.</p>
-
-        <!-- Exibe o resultado da última operação sem confiar no texto da URL. -->
-        <?php if ($mensagemSucesso !== '') { ?>
-            <div class="mensagem-sucesso" role="status"><?php echo htmlspecialchars($mensagemSucesso, ENT_QUOTES, 'UTF-8'); ?></div>
-        <?php } ?>
-        <?php if ($mensagemErro !== '') { ?>
-            <div class="mensagem-erro" role="alert"><?php echo htmlspecialchars($mensagemErro, ENT_QUOTES, 'UTF-8'); ?></div>
-        <?php } ?>
-
-        <!-- Tabela com os pets cadastrados -->
-        <table class="tabela-livros">
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Espécie ou raça</th>
-                <th>Situação</th>
-                <th>Ações</th>
-            </tr>
-            <?php
-            while ($pet = mysqli_fetch_assoc($resultado)) {
-                ?>
-                <tr>
-                    <td><?php echo (int) $pet['id']; ?></td>
-                    <td><?php echo htmlspecialchars($pet['titulo'], ENT_QUOTES, 'UTF-8'); ?></td>
-                    <td><?php echo htmlspecialchars($pet['autor'], ENT_QUOTES, 'UTF-8'); ?></td>
-                    <td><?php echo htmlspecialchars($pet['status'] === 'Emprestado' ? 'Em atendimento' : 'Disponível', ENT_QUOTES, 'UTF-8'); ?></td>
-                    <td class="acoes">
-                        <a href="editar_animal.php?id=<?php echo (int) $pet['id']; ?>" class="link-editar">
-                            Editar</a>
-
-                        <!-- Exclusão por POST e token CSRF evita remover registros por simples visita a um link. -->
-                        <form action="excluir_animal.php" method="post" onsubmit="return confirm('Tem certeza que deseja remover este pet?')">
-                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
-                            <input type="hidden" name="id" value="<?php echo (int) $pet['id']; ?>">
-                            <button type="submit" class="link-excluir">Excluir</button>
-                        </form>
-                    </td>
-                </tr>
-            <?php } ?>
-        </table>
-        <?php if (mysqli_num_rows($resultado) === 0) { ?>
-            <p class="subtitulo">Ainda não há pets cadastrados. Comece adicionando um novo amigo.</p>
-        <?php } ?>
-        <a href="painel.php" class="btn btn-voltar">Voltar ao painel</a>
+<form class="barra-ferramentas" method="get" action="animais_cadastrados.php" role="search">
+    <div class="grupo-form campo-busca">
+        <label for="busca">Buscar</label>
+        <input type="search" id="busca" name="busca" value="<?= e($busca) ?>"
+            placeholder="Nome, espécie, raça ou tutor" maxlength="100">
     </div>
 
-</body>
+    <div class="grupo-form filtro-status">
+        <label for="status">Situação</label>
+        <select id="status" name="status" data-auto-enviar>
+            <option value="">Todas as situações</option>
+            <option value="disponivel" <?= $status === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
+            <option value="em_atendimento" <?= $status === 'em_atendimento' ? 'selected' : '' ?>>Em atendimento</option>
+        </select>
+    </div>
 
-</html>
+    <button type="submit" class="btn">Buscar</button>
+
+    <?php if ($temFiltro): ?>
+        <a class="btn btn-fantasma" href="animais_cadastrados.php">Limpar</a>
+    <?php endif; ?>
+
+    <a class="btn btn-secundario empurrar" href="cadastrar_animal.php">+ Novo pet</a>
+</form>
+
+<p class="contador-resultados">
+    <?= (int) $total ?> <?= $total === 1 ? 'pet encontrado' : 'pets encontrados' ?>
+    <?php if ($totalPaginas > 1): ?>
+        · página <?= (int) $pagina ?> de <?= (int) $totalPaginas ?>
+    <?php endif; ?>
+</p>
+
+<?php if ($pets): ?>
+    <div class="tabela-responsiva">
+        <table class="tabela tabela-pets">
+            <thead>
+                <tr>
+                    <th scope="col">Pet</th>
+                    <th scope="col">Sexo / idade</th>
+                    <th scope="col">Tutor</th>
+                    <th scope="col">Situação</th>
+                    <th scope="col" class="col-acoes">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($pets as $pet): ?>
+                    <tr>
+                        <td data-label="Pet">
+                            <div class="pet-nome"><?= e($pet['nome']) ?></div>
+                            <div class="pet-detalhe">
+                                <?= e($pet['especie']) ?><?= !empty($pet['raca']) ? ' · ' . e($pet['raca']) : '' ?>
+                            </div>
+                        </td>
+                        <td data-label="Sexo / idade">
+                            <?= e(rotulo_sexo((string) $pet['sexo'])) ?> · <?= e(idade_pet($pet['data_nascimento'])) ?>
+                        </td>
+                        <td data-label="Tutor">
+                            <?php if (!empty($pet['tutor_nome'])): ?>
+                                <div><?= e($pet['tutor_nome']) ?></div>
+                                <?php if (!empty($pet['tutor_telefone'])): ?>
+                                    <div class="pet-detalhe"><?= e($pet['tutor_telefone']) ?></div>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="texto-suave">Não informado</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="Situação">
+                            <span class="badge <?= e(classe_status((string) $pet['status'])) ?>">
+                                <?= e(rotulo_status((string) $pet['status'])) ?>
+                            </span>
+                        </td>
+                        <td data-label="Ações" class="acoes">
+                            <a class="btn btn-pequeno btn-contorno" href="editar_animal.php?id=<?= (int) $pet['id'] ?>">Editar</a>
+                            <form action="excluir_animal.php" method="post"
+                                data-confirmar="Remover o pet <?= e($pet['nome']) ?>? Esta ação não pode ser desfeita.">
+                                <?= csrf_campo() ?>
+                                <input type="hidden" name="id" value="<?= (int) $pet['id'] ?>">
+                                <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php if ($totalPaginas > 1): ?>
+        <nav class="paginacao" aria-label="Paginação dos pets">
+            <a class="pagina-link <?= $pagina <= 1 ? 'desativada' : '' ?>"
+                href="<?= e($montarUrl(max(1, $pagina - 1))) ?>"
+                <?= $pagina <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' ?>>←</a>
+
+            <?php for ($numero = $inicioPaginas; $numero <= $fimPaginas; $numero++): ?>
+                <a class="pagina-link <?= $numero === $pagina ? 'ativa' : '' ?>"
+                    href="<?= e($montarUrl($numero)) ?>"
+                    <?= $numero === $pagina ? 'aria-current="page"' : '' ?>><?= $numero ?></a>
+            <?php endfor; ?>
+
+            <a class="pagina-link <?= $pagina >= $totalPaginas ? 'desativada' : '' ?>"
+                href="<?= e($montarUrl(min($totalPaginas, $pagina + 1))) ?>"
+                <?= $pagina >= $totalPaginas ? 'aria-disabled="true" tabindex="-1"' : '' ?>>→</a>
+        </nav>
+    <?php endif; ?>
+<?php else: ?>
+    <div class="estado-vazio">
+        <div class="estado-vazio-icone" aria-hidden="true">🐾</div>
+        <h2><?= $temFiltro ? 'Nenhum pet encontrado' : 'Nenhum pet cadastrado ainda' ?></h2>
+        <p>
+            <?= $temFiltro
+                ? 'Tente ajustar a busca ou os filtros para encontrar o pet desejado.'
+                : 'Cadastre o primeiro amigo para começar a acompanhar os atendimentos.' ?>
+        </p>
+        <?php if ($temFiltro): ?>
+            <a class="btn btn-contorno" href="animais_cadastrados.php">Limpar filtros</a>
+        <?php else: ?>
+            <a class="btn" href="cadastrar_animal.php">Cadastrar primeiro pet</a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
+<a href="painel.php" class="btn btn-voltar btn-contorno">← Voltar ao painel</a>
+
+<?php require __DIR__ . '/includes/layout/footer.php'; ?>

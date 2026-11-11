@@ -1,0 +1,14 @@
+# Configuração local (credenciais)
+/config/config.local.php
+
+# Logs e artefatos
+*.log
+/logs/
+/backups/
+
+# Sistema operacional / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

@@ -1,44 +1,51 @@
-<!-- Formulário de login -->
-<!DOCTYPE html>
-<html lang="pt-br">
+<?php
+require_once __DIR__ . '/includes/bootstrap.php';
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrar | Petit Pet</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+if (usuario_logado()) {
+    redirecionar('painel.php');
+}
 
-<body>
-    <div class="container">
-        <h1>🐾 Petit Pet</h1>
-        <p class="subtitulo">Entre para cuidar dos pets e acompanhar os atendimentos.</p>
+$mensagemSucesso = '';
+if (($_GET['sucesso'] ?? '') === 'logout') {
+    $mensagemSucesso = 'Você saiu da sua conta com segurança.';
+}
 
-        <?php
-        if (isset($_GET['erro']) && $_GET['erro'] === 'login') {
-            echo '<div class="mensagem-erro">E-mail ou senha inválidos. Confira seus dados e tente novamente.</div>';
-        }
-        ?>
-        <form action="autenticar.php" method="POST">
-            <div class="form-group">
-                <label for="email">E-mail</label>
-                <input type="email" id="email" name="email" placeholder="voce@email.com" required>
-            </div>
-            <div class="form-group">
-                <label for="senha">Senha</label>
-                <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
-            </div>
-            <button type="submit" class="btn btn-block">Entrar</button>
-        </form>
+$titulo = 'Entrar na sua conta';
+$subtitulo = 'Acesse o painel para cuidar dos pets e acompanhar os atendimentos.';
+$containerClasse = 'container container-auth';
+$paginaAtiva = 'login';
+$descricaoPagina = 'Entre na sua conta da Petit Pet.';
 
-        <div class="nav-links">
-            <p>Não tem conta? <a href="cadastro.php">Cadastre-se</a></p>
-        </div>
-        <div class="dica-navegacao">
-            <strong>Petit Pet:</strong> carinho e cuidado em cada visita.
-        </div>
+require __DIR__ . '/includes/layout/header.php';
+?>
 
+<?php if ($mensagemSucesso !== ''): ?>
+    <div class="mensagem mensagem-sucesso" role="status">
+        <span class="mensagem-icone" aria-hidden="true">✓</span>
+        <p><?= e($mensagemSucesso) ?></p>
     </div>
-</body>
+<?php endif; ?>
 
-</html>
+<form action="autenticar.php" method="post" class="formulario">
+    <?= csrf_campo() ?>
+
+    <div class="grupo-form">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="voce@email.com"
+            autocomplete="email" maxlength="100" required>
+    </div>
+
+    <div class="grupo-form">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha" placeholder="Digite sua senha"
+            autocomplete="current-password" required>
+    </div>
+
+    <button type="submit" class="btn btn-bloco">Entrar</button>
+</form>
+
+<div class="rodape-form">
+    <p>Não tem conta? <a href="cadastro.php">Cadastre-se</a></p>
+</div>
+
+<?php require __DIR__ . '/includes/layout/footer.php'; ?>

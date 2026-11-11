@@ -1,0 +1,44 @@
+/* ==========================================================================
+   Petit Pet — fontes locais (sem dependência do Google Fonts)
+   Arquivos em assets/fonts/. Licença SIL Open Font License.
+   ========================================================================== */
+
+@font-face {
+    font-family: 'Cherry Bomb One';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/cherry-bomb-one-400.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('../fonts/nunito-sans-variable.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('../fonts/nunito-sans-variable.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('../fonts/nunito-sans-variable.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Nunito Sans';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url('../fonts/nunito-sans-variable.woff2') format('woff2');
+}

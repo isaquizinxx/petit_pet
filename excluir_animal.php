@@ -1,49 +1,39 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
+exigir_login();
 
-// Exige autenticação antes de processar qualquer solicitação de exclusão.
-include("verificar_sessao.php");
-
-// A exclusão é uma alteração destrutiva e só pode ser solicitada por POST.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: animais_cadastrados.php?erro=metodo");
-    exit();
+    flash('erro', 'A exclusão precisa ser solicitada pelo formulário.');
+    redirecionar('animais_cadastrados.php');
 }
 
-// Impede que outro site acione a exclusão usando a sessão autenticada do usuário.
-$tokenEnviado = $_POST['csrf_token'] ?? '';
-$tokenSessao = $_SESSION['csrf_token'] ?? '';
-if (
-    !is_string($tokenEnviado)
-    || !is_string($tokenSessao)
-    || $tokenEnviado === ''
-    || !hash_equals($tokenSessao, $tokenEnviado)
-) {
-    header("Location: animais_cadastrados.php?erro=sessao");
-    exit();
+exigir_csrf('animais_cadastrados.php');
+
+$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+if (!$id || $id < 1) {
+    flash('erro', 'O identificador do pet não é válido.');
+    redirecionar('animais_cadastrados.php');
 }
 
-// Aceita somente um identificador inteiro positivo.
-$idRecebido = $_POST['id'] ?? null;
-if (!is_string($idRecebido) || !ctype_digit($idRecebido) || (int) $idRecebido < 1) {
-    header("Location: animais_cadastrados.php?erro=id");
-    exit();
-}
-$id = (int) $idRecebido;
-
-// Remove o registro por consulta preparada, limitando a operação ao pet solicitado.
-include("conexao.php");
 try {
-    $comando = $conexao->prepare("DELETE FROM livros WHERE id = ?");
-    $comando->bind_param("i", $id);
-    $comando->execute();
-    $comando->close();
-} catch (mysqli_sql_exception $erroBanco) {
-    error_log("Falha ao excluir pet: " . $erroBanco->getMessage());
-    header("Location: animais_cadastrados.php?erro=excluir");
-    exit();
+    $pet = buscar_pet((int) $id);
+
+    if (!$pet) {
+        flash('erro', 'O pet solicitado não foi encontrado.');
+        redirecionar('animais_cadastrados.php');
+    }
+
+    $removeu = excluir_pet((int) $id);
+} catch (Throwable $erro) {
+    error_log('[Petit Pet] Falha ao excluir pet: ' . $erro->getMessage());
+    flash('erro', 'Não foi possível remover o pet agora. Tente novamente.');
+    redirecionar('animais_cadastrados.php');
 }
 
-// Invalida o token anterior para que o formulário precise ser carregado novamente.
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-header("Location: animais_cadastrados.php?sucesso=exclusao");
-exit();
+if (!$removeu) {
+    flash('erro', 'O pet não foi encontrado ou já havia sido removido.');
+    redirecionar('animais_cadastrados.php');
+}
+
+flash('sucesso', 'Pet "' . $pet['nome'] . '" removido com sucesso.');
+redirecionar('animais_cadastrados.php');

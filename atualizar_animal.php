@@ -1,76 +1,44 @@
 <?php
+require_once __DIR__ . '/includes/bootstrap.php';
+exigir_login();
 
-// Protege a operação contra usuários não autenticados.
-include("verificar_sessao.php");
-
-// Alterações de dados devem ocorrer por POST, nunca por acesso direto via URL.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: animais_cadastrados.php?erro=metodo");
-    exit();
+    flash('erro', 'Envie as alterações pelo formulário.');
+    redirecionar('animais_cadastrados.php');
 }
 
-// Confere que a solicitação veio de um formulário aberto na sessão atual.
-$tokenEnviado = $_POST['csrf_token'] ?? '';
-$tokenSessao = $_SESSION['csrf_token'] ?? '';
-if (
-    !is_string($tokenEnviado)
-    || !is_string($tokenSessao)
-    || $tokenEnviado === ''
-    || !hash_equals($tokenSessao, $tokenEnviado)
-) {
-    header("Location: animais_cadastrados.php?erro=sessao");
-    exit();
+exigir_csrf('animais_cadastrados.php');
+
+$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+if (!$id || $id < 1) {
+    flash('erro', 'O identificador do pet não é válido.');
+    redirecionar('animais_cadastrados.php');
 }
 
-// Rejeita identificadores e campos que não tenham o formato esperado.
-$idRecebido = $_POST['id'] ?? null;
-$tituloRecebido = $_POST['titulo'] ?? null;
-$autorRecebido = $_POST['autor'] ?? null;
-$statusRecebido = $_POST['status'] ?? null;
+$dados = dados_pet_do_post($_POST);
+$erros = validar_dados_pet($dados);
 
-if (
-    !is_string($idRecebido)
-    || !ctype_digit($idRecebido)
-    || (int) $idRecebido < 1
-    || !is_string($tituloRecebido)
-    || !is_string($autorRecebido)
-    || !is_string($statusRecebido)
-) {
-    header("Location: animais_cadastrados.php?erro=campos");
-    exit();
+if ($erros) {
+    $_SESSION['pet_formulario'] = $dados;
+    $_SESSION['pet_erros'] = $erros;
+    flash('erro', 'Confira os campos destacados e tente novamente.');
+    redirecionar('editar_animal.php?id=' . (int) $id);
 }
 
-// Normaliza os textos e limita o status aos códigos legados aceitos pelo cadastro.
-$id = (int) $idRecebido;
-$titulo = trim($tituloRecebido);
-$autor = trim($autorRecebido);
-$status = $statusRecebido;
-
-if (
-    $titulo === ''
-    || $autor === ''
-    || !in_array($status, ['Disponivel', 'Emprestado'], true)
-) {
-    header("Location: editar_animal.php?id=" . $id . "&erro=campos");
-    exit();
-}
-
-// Atualiza os dados usando parâmetros vinculados, sem concatenar entrada do usuário.
-include("conexao.php");
 try {
-    $comando = $conexao->prepare(
-        "UPDATE livros SET titulo = ?, autor = ?, status = ? WHERE id = ?"
-    );
-    $comando->bind_param("sssi", $titulo, $autor, $status, $id);
-    $comando->execute();
-    $comando->close();
-} catch (mysqli_sql_exception $erroBanco) {
-    error_log("Falha ao atualizar pet: " . $erroBanco->getMessage());
-    header("Location: editar_animal.php?id=" . $id . "&erro=salvar");
-    exit();
+    if (!buscar_pet((int) $id)) {
+        flash('erro', 'O pet solicitado não foi encontrado.');
+        redirecionar('animais_cadastrados.php');
+    }
+
+    atualizar_pet((int) $id, $dados);
+} catch (Throwable $erro) {
+    error_log('[Petit Pet] Falha ao atualizar pet: ' . $erro->getMessage());
+    $_SESSION['pet_formulario'] = $dados;
+    flash('erro', 'Não foi possível salvar as alterações agora. Tente novamente.');
+    redirecionar('editar_animal.php?id=' . (int) $id);
 }
 
-// Renova o token e informa a listagem sobre a operação concluída.
-$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-header("Location: animais_cadastrados.php?sucesso=atualizacao");
-exit();
+unset($_SESSION['pet_formulario'], $_SESSION['pet_erros']);
+flash('sucesso', 'Cadastro de "' . $dados['nome'] . '" atualizado com sucesso!');
+redirecionar('animais_cadastrados.php');
