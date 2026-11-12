@@ -1,21 +1,21 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
-if (usuario_logado()) {
-    redirecionar('painel.php');
-}
-
+$destaques = [];
 $estatisticas = null;
+
 try {
+    $destaques = listar_pets();
+    $destaques = array_slice($destaques, 0, 3);
     $estatisticas = estatisticas_pets();
 } catch (Throwable $erro) {
-    error_log('[Petit Pet] Falha ao carregar estatísticas da página inicial: ' . $erro->getMessage());
+    error_log('[Petit Pet] Falha ao carregar a página inicial: ' . $erro->getMessage());
 }
 
 $titulo = '';
 $containerClasse = 'container container-largo';
 $paginaAtiva = 'inicio';
-$descricaoPagina = 'Petit Pet: cadastro e acompanhamento de pets com cuidado, carinho e organização.';
+$descricaoPagina = 'Petit Pet: cadastro e cuidado dos seus pets com carinho e organização.';
 
 require __DIR__ . '/includes/layout/header.php';
 ?>
@@ -23,82 +23,123 @@ require __DIR__ . '/includes/layout/header.php';
 <section class="hero">
     <div class="hero-texto">
         <p class="eyebrow">Cuidado de perto</p>
-        <h1>Cuidado que vira carinho, todos os dias.</h1>
+        <h1>Um cantinho organizado para quem você ama.</h1>
         <p class="hero-descricao">
-            Organize o cadastro dos pets, acompanhe a situação de cada atendimento e mantenha
-            todas as informações importantes em um só lugar.
+            A Petit Pet reúne o cadastro dos seus pets em um só lugar: informações,
+            contato do tutor e situação de cada atendimento, com o carinho que eles merecem.
         </p>
+
         <div class="hero-acoes">
-            <a class="btn btn-grande btn-secundario" href="cadastro.php">Criar minha conta</a>
-            <a class="btn btn-grande btn-contorno" href="login.php">Já tenho conta</a>
+            <a class="btn btn-grande" href="pets.php">Conhecer os pets</a>
+            <?php if (usuario_logado()): ?>
+                <a class="btn btn-grande btn-contorno" href="<?= eh_admin() ? 'admin.php' : 'painel.php' ?>">
+                    <?= eh_admin() ? 'Ir para a administração' : 'Meu painel' ?>
+                </a>
+            <?php else: ?>
+                <a class="btn btn-grande btn-contorno" href="cadastro.php">Criar minha conta</a>
+            <?php endif; ?>
         </div>
+
         <ul class="hero-lista">
-            <li>Cadastro completo de cada pet e do seu tutor</li>
-            <li>Busca rápida e filtros por situação</li>
-            <li>Painel com o resumo dos atendimentos</li>
+            <li><span aria-hidden="true">💗</span> Cadastro simples e rápido</li>
+            <li><span aria-hidden="true">🐾</span> Acompanhe cada pet de perto</li>
+            <li><span aria-hidden="true">📋</span> Informações sempre à mão</li>
         </ul>
     </div>
-    <div class="hero-visual" aria-hidden="true">
-        <div class="hero-circulo">🐾</div>
-        <div class="hero-selo">Carinho em cada visita</div>
-    </div>
+
+    <aside class="hero-card" aria-label="Resumo da Petit Pet">
+        <div class="hero-card-topo">
+            <span class="hero-card-icone" aria-hidden="true">🐾</span>
+            <p class="hero-card-titulo">Petit Pet</p>
+            <p class="hero-card-texto">Cuidado que vira carinho, todos os dias.</p>
+        </div>
+
+        <?php if ($estatisticas !== null): ?>
+            <dl class="hero-numeros">
+                <div>
+                    <dt>Pets cadastrados</dt>
+                    <dd><?= (int) $estatisticas['total'] ?></dd>
+                </div>
+                <div>
+                    <dt>Disponíveis</dt>
+                    <dd><?= (int) $estatisticas['disponiveis'] ?></dd>
+                </div>
+                <div>
+                    <dt>Tutores</dt>
+                    <dd><?= (int) $estatisticas['tutores'] ?></dd>
+                </div>
+            </dl>
+        <?php endif; ?>
+
+        <a class="hero-card-link" href="pets.php">Ver todos os pets <span aria-hidden="true">→</span></a>
+    </aside>
 </section>
 
-<?php if ($estatisticas !== null): ?>
-    <section class="secao" aria-labelledby="titulo-numeros">
-        <div class="secao-cabecalho">
-            <h2 class="secao-titulo" id="titulo-numeros">A Petit Pet em números</h2>
-        </div>
-        <div class="grade-estatisticas">
-            <article class="cartao-estatistica">
-                <p class="rotulo"><span aria-hidden="true">🐾</span> Pets cadastrados</p>
-                <p class="numero"><?= (int) $estatisticas['total'] ?></p>
-            </article>
-            <article class="cartao-estatistica cartao-estatistica--verde">
-                <p class="rotulo"><span aria-hidden="true">💚</span> Disponíveis</p>
-                <p class="numero"><?= (int) $estatisticas['disponiveis'] ?></p>
-            </article>
-            <article class="cartao-estatistica cartao-estatistica--amarelo">
-                <p class="rotulo"><span aria-hidden="true">🩺</span> Em atendimento</p>
-                <p class="numero"><?= (int) $estatisticas['em_atendimento'] ?></p>
-            </article>
-            <article class="cartao-estatistica cartao-estatistica--azul">
-                <p class="rotulo"><span aria-hidden="true">👤</span> Tutores</p>
-                <p class="numero"><?= (int) $estatisticas['tutores'] ?></p>
-            </article>
-        </div>
-    </section>
-<?php endif; ?>
-
-<section class="secao" aria-labelledby="titulo-recursos">
+<section class="secao">
     <div class="secao-cabecalho">
-        <h2 class="secao-titulo" id="titulo-recursos">Tudo o que você precisa em um só lugar</h2>
+        <div>
+            <p class="eyebrow">Nossos amigos</p>
+            <h2>Pets em destaque</h2>
+        </div>
+        <a class="link-seta" href="pets.php">Ver todos <span aria-hidden="true">→</span></a>
     </div>
-    <div class="recursos">
-        <article class="recurso">
-            <div class="recurso-icone" aria-hidden="true">📋</div>
-            <h2>Cadastro organizado</h2>
-            <p>Registre nome, espécie, raça, idade, porte, tutor e observações importantes de cada pet.</p>
+
+    <?php if ($destaques): ?>
+        <div class="grade-pets">
+            <?php foreach ($destaques as $pet): ?>
+                <?php $petCard = $pet; require __DIR__ . '/includes/cartao_pet.php'; ?>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="vazio">
+            <p>Nenhum pet cadastrado por enquanto.</p>
+            <a class="btn btn-contorno" href="cadastro.php">Comece criando sua conta</a>
+        </div>
+    <?php endif; ?>
+</section>
+
+<section class="secao">
+    <div class="secao-cabecalho">
+        <div>
+            <p class="eyebrow">Simples assim</p>
+            <h2>Como funciona</h2>
+        </div>
+    </div>
+
+    <div class="passos">
+        <article class="passo">
+            <span class="passo-numero" aria-hidden="true">1</span>
+            <h3>Crie sua conta</h3>
+            <p>Um cadastro rápido para você acompanhar os seus pets com segurança.</p>
         </article>
-        <article class="recurso">
-            <div class="recurso-icone" aria-hidden="true">🔎</div>
-            <h2>Encontre rapidinho</h2>
-            <p>Busque por nome, espécie, raça ou tutor e filtre os pets por situação em poucos cliques.</p>
+        <article class="passo">
+            <span class="passo-numero" aria-hidden="true">2</span>
+            <h3>Cadastre seu pet</h3>
+            <p>Informe nome, espécie, idade e os cuidados especiais de cada amigo.</p>
         </article>
-        <article class="recurso">
-            <div class="recurso-icone" aria-hidden="true">💗</div>
-            <h2>Acompanhamento próximo</h2>
-            <p>Veja o resumo dos atendimentos e mantenha a rotina de cuidado sempre em dia.</p>
+        <article class="passo">
+            <span class="passo-numero" aria-hidden="true">3</span>
+            <h3>Acompanhe tudo</h3>
+            <p>Consulte e atualize as informações sempre que precisar, em poucos cliques.</p>
         </article>
     </div>
 </section>
 
-<section class="cta-final">
+<section class="faixa-cta">
     <div>
         <h2>Pronto para começar?</h2>
-        <p>Crie sua conta gratuitamente e cadastre o primeiro pet.</p>
+        <p><?= usuario_logado() ? 'Acesse seu painel e cuide dos seus pets.' : 'Crie sua conta gratuita e cadastre seu primeiro pet.' ?></p>
     </div>
-    <a class="btn btn-grande" href="cadastro.php">Quero participar</a>
+    <?php if (usuario_logado()): ?>
+        <a class="btn btn-grande" href="<?= eh_admin() ? 'admin.php' : 'painel.php' ?>">Acessar meu painel</a>
+    <?php else: ?>
+        <a class="btn btn-grande" href="cadastro.php">Criar minha conta</a>
+    <?php endif; ?>
 </section>
+
+<p class="rodape-admin">
+    É da equipe Petit Pet?
+    <a href="login.php?area=admin">Acessar a área administrativa</a>
+</p>
 
 <?php require __DIR__ . '/includes/layout/footer.php'; ?>

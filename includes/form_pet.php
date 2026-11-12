@@ -8,7 +8,12 @@
  * - $acaoFormulario (string)
  * - $petId (int|null)
  * - $textoBotao (string)
+ * - $modoFormulario ('cliente' ou 'admin')
+ * - $urlCancelar (string)
  */
+$modoFormulario = ($modoFormulario ?? 'cliente') === 'admin' ? 'admin' : 'cliente';
+$urlCancelar = $urlCancelar ?? ($modoFormulario === 'admin' ? 'admin_pets.php' : 'painel.php');
+
 $temErroPet = static fn (string $campo): bool => isset($errosPet[$campo]);
 $attrErroPet = static function (string $campo) use ($temErroPet): string {
     return $temErroPet($campo)
@@ -58,7 +63,7 @@ $mensagemErroPet = static function (string $campo) use ($errosPet, $temErroPet):
         <div class="linha-campos">
             <div class="grupo-form">
                 <label for="raca">Raça</label>
-                <input type="text" id="raca" name="raca" placeholder="Ex.: Golden Retriever"
+                <input type="text" id="raca" name="raca" placeholder="Ex.: Shih-tzu"
                     maxlength="80" value="<?= e($pet['raca'] ?? '') ?>" <?= $attrErroPet('raca') ?>>
                 <p class="ajuda">Opcional. Deixe em branco se não souber.</p>
                 <?= $mensagemErroPet('raca') ?>
@@ -97,34 +102,43 @@ $mensagemErroPet = static function (string $campo) use ($errosPet, $temErroPet):
             </div>
         </div>
 
-        <div class="grupo-form">
-            <label for="status">Situação</label>
-            <select id="status" name="status" required <?= $attrErroPet('status') ?>>
-                <option value="disponivel" <?= ($pet['status'] ?? '') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
-                <option value="em_atendimento" <?= ($pet['status'] ?? '') === 'em_atendimento' ? 'selected' : '' ?>>Em atendimento</option>
-            </select>
-            <?= $mensagemErroPet('status') ?>
-        </div>
+        <?php if ($modoFormulario === 'admin'): ?>
+            <div class="grupo-form">
+                <label for="status">Situação</label>
+                <select id="status" name="status" required <?= $attrErroPet('status') ?>>
+                    <option value="disponivel" <?= ($pet['status'] ?? '') === 'disponivel' ? 'selected' : '' ?>>Disponível</option>
+                    <option value="em_atendimento" <?= ($pet['status'] ?? '') === 'em_atendimento' ? 'selected' : '' ?>>Em atendimento</option>
+                </select>
+                <?= $mensagemErroPet('status') ?>
+            </div>
+        <?php endif; ?>
     </fieldset>
 
     <fieldset class="secao-form">
-        <legend>Tutor e observações</legend>
+        <legend><?= $modoFormulario === 'admin' ? 'Tutor e observações' : 'Observações' ?></legend>
 
-        <div class="linha-campos">
-            <div class="grupo-form">
-                <label for="tutor_nome">Nome do tutor</label>
-                <input type="text" id="tutor_nome" name="tutor_nome" placeholder="Quem cuida deste pet?"
-                    maxlength="100" value="<?= e($pet['tutor_nome'] ?? '') ?>" <?= $attrErroPet('tutor_nome') ?>>
-                <?= $mensagemErroPet('tutor_nome') ?>
-            </div>
+        <?php if ($modoFormulario === 'admin'): ?>
+            <div class="linha-campos">
+                <div class="grupo-form">
+                    <label for="tutor_nome">Nome do tutor</label>
+                    <input type="text" id="tutor_nome" name="tutor_nome" placeholder="Quem cuida deste pet?"
+                        maxlength="100" value="<?= e($pet['tutor_nome'] ?? '') ?>" <?= $attrErroPet('tutor_nome') ?>>
+                    <?= $mensagemErroPet('tutor_nome') ?>
+                </div>
 
-            <div class="grupo-form">
-                <label for="tutor_telefone">Telefone do tutor</label>
-                <input type="tel" id="tutor_telefone" name="tutor_telefone" placeholder="(00) 00000-0000"
-                    maxlength="30" value="<?= e($pet['tutor_telefone'] ?? '') ?>" <?= $attrErroPet('tutor_telefone') ?>>
-                <?= $mensagemErroPet('tutor_telefone') ?>
+                <div class="grupo-form">
+                    <label for="tutor_telefone">Telefone do tutor</label>
+                    <input type="tel" id="tutor_telefone" name="tutor_telefone" placeholder="(00) 00000-0000"
+                        maxlength="30" value="<?= e($pet['tutor_telefone'] ?? '') ?>" <?= $attrErroPet('tutor_telefone') ?>>
+                    <?= $mensagemErroPet('tutor_telefone') ?>
+                </div>
             </div>
-        </div>
+        <?php else: ?>
+            <p class="ajuda ajuda-bloco">
+                O tutor deste pet será você, <?= e(usuario_nome()) ?>.
+                Para alterar o contato do tutor, atualize seus dados com a administração.
+            </p>
+        <?php endif; ?>
 
         <div class="grupo-form">
             <label for="observacoes">Observações</label>
@@ -137,6 +151,6 @@ $mensagemErroPet = static function (string $campo) use ($errosPet, $temErroPet):
 
     <div class="form-acoes">
         <button type="submit" class="btn"><?= e($textoBotao) ?></button>
-        <a href="animais_cadastrados.php" class="btn btn-contorno">Cancelar</a>
+        <a href="<?= e($urlCancelar) ?>" class="btn btn-contorno">Cancelar</a>
     </div>
 </form>

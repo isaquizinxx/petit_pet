@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 
-enviar_cabecalhos_sem_cache();
 encerrar_sessao();
+iniciar_sessao();
 
-header('Location: login.php?sucesso=logout');
-exit;
+flash('sucesso', 'Você saiu da sua conta com segurança.');
+redirecionar('index.php');

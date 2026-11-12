@@ -4,7 +4,7 @@
     <footer class="rodape">
         <div class="rodape-conteudo">
             <p><strong>🐾 Petit Pet</strong> — cuidado que vira carinho.</p>
-            <p class="rodape-pequeno">Projeto demonstrativo em PHP &amp; MySQL · <?= e(APP_ANO) ?></p>
+            <p class="rodape-pequeno">Projeto escolar em PHP &amp; MySQL · <?= e(APP_ANO) ?></p>
         </div>
     </footer>
 

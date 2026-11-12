@@ -1,126 +1,107 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-exigir_login();
+exigir_cliente();
 
-$estatisticas = [
-    'total' => 0,
-    'disponiveis' => 0,
-    'em_atendimento' => 0,
-    'tutores' => 0,
-];
-$recentes = [];
+$usuario = buscar_usuario((int) usuario_id());
+if (!$usuario) {
+    flash('erro', 'Não foi possível carregar sua conta. Entre novamente.');
+    redirecionar('logout.php');
+}
+
+$pets = [];
 $erroConsulta = false;
 
 try {
-    $estatisticas = estatisticas_pets();
-    $recentes = pets_recentes(4);
+    $pets = pets_do_cliente((int) usuario_id());
 } catch (Throwable $erro) {
-    error_log('[Petit Pet] Falha ao carregar o painel: ' . $erro->getMessage());
+    error_log('[Petit Pet] Falha ao carregar pets do cliente: ' . $erro->getMessage());
     $erroConsulta = true;
 }
 
-$titulo = 'Olá, ' . usuario_nome() . '!';
-$subtitulo = 'Bem-vindo(a) à Petit Pet. Aqui está o resumo do cuidado com os pets.';
-$eyebrow = 'Painel';
-$containerClasse = 'container container-largo';
+$totalPets = count($pets);
+$disponiveis = count(array_filter($pets, static fn (array $pet): bool => $pet['status'] === 'disponivel'));
+$emAtendimento = $totalPets - $disponiveis;
+
+$titulo = 'Olá, ' . $usuario['nome'] . '!';
+$subtitulo = 'Este é o seu espaço na Petit Pet. Cuide das informações dos seus pets em poucos cliques.';
+$eyebrow = 'Meu painel';
 $paginaAtiva = 'painel';
-$descricaoPagina = 'Painel de controle da Petit Pet.';
+$descricaoPagina = 'Painel do cliente na Petit Pet.';
 
 require __DIR__ . '/includes/layout/header.php';
 ?>
 
-<?php if ($erroConsulta): ?>
-    <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
-        <p>Não foi possível carregar os números do painel agora. Tente atualizar a página.</p>
+<section class="resumo-cliente" aria-label="Resumo dos seus pets">
+    <div class="resumo-item">
+        <span class="resumo-numero"><?= $totalPets ?></span>
+        <span class="resumo-rotulo"><?= $totalPets === 1 ? 'pet cadastrado' : 'pets cadastrados' ?></span>
     </div>
-<?php endif; ?>
-
-<section aria-labelledby="titulo-resumo">
-    <div class="secao-cabecalho">
-        <h2 class="secao-titulo" id="titulo-resumo">Resumo geral</h2>
+    <div class="resumo-item">
+        <span class="resumo-numero"><?= $disponiveis ?></span>
+        <span class="resumo-rotulo">disponíveis</span>
     </div>
-    <div class="grade-estatisticas">
-        <article class="cartao-estatistica">
-            <p class="rotulo"><span aria-hidden="true">🐾</span> Pets cadastrados</p>
-            <p class="numero"><?= (int) $estatisticas['total'] ?></p>
-        </article>
-        <article class="cartao-estatistica cartao-estatistica--verde">
-            <p class="rotulo"><span aria-hidden="true">💚</span> Disponíveis</p>
-            <p class="numero"><?= (int) $estatisticas['disponiveis'] ?></p>
-        </article>
-        <article class="cartao-estatistica cartao-estatistica--amarelo">
-            <p class="rotulo"><span aria-hidden="true">🩺</span> Em atendimento</p>
-            <p class="numero"><?= (int) $estatisticas['em_atendimento'] ?></p>
-        </article>
-        <article class="cartao-estatistica cartao-estatistica--azul">
-            <p class="rotulo"><span aria-hidden="true">👤</span> Tutores</p>
-            <p class="numero"><?= (int) $estatisticas['tutores'] ?></p>
-        </article>
+    <div class="resumo-item">
+        <span class="resumo-numero"><?= $emAtendimento ?></span>
+        <span class="resumo-rotulo">em atendimento</span>
     </div>
 </section>
 
-<section class="secao" aria-labelledby="titulo-atalhos">
-    <div class="secao-cabecalho">
-        <h2 class="secao-titulo" id="titulo-atalhos">O que vamos fazer hoje?</h2>
-    </div>
-    <div class="acoes-rapidas">
-        <a href="cadastrar_animal.php" class="acao-card">
-            <span class="acao-icone" aria-hidden="true">➕</span>
-            <span class="acao-titulo">Cadastrar pet</span>
-            <span class="acao-descricao">Adicione um novo amigo e as informações do tutor.</span>
-        </a>
-        <a href="animais_cadastrados.php" class="acao-card acao-card--azul">
-            <span class="acao-icone" aria-hidden="true">🔎</span>
-            <span class="acao-titulo">Ver pets cadastrados</span>
-            <span class="acao-descricao">Consulte, busque, edite ou remova registros.</span>
-        </a>
-        <a href="logout.php" class="acao-card acao-card--sair">
-            <span class="acao-icone" aria-hidden="true">🚪</span>
-            <span class="acao-titulo">Sair da conta</span>
-            <span class="acao-descricao">Encerrar a sessão com segurança.</span>
-        </a>
-    </div>
+<section class="acoes-rapidas" aria-label="Ações rápidas">
+    <a class="acao-card" href="cadastrar_pet.php">
+        <span class="acao-icone" aria-hidden="true">➕</span>
+        <span class="acao-titulo">Cadastrar pet</span>
+        <span class="acao-texto">Adicione um novo amigo ao seu painel.</span>
+    </a>
+    <a class="acao-card" href="pets.php">
+        <span class="acao-icone" aria-hidden="true">🔎</span>
+        <span class="acao-titulo">Explorar pets</span>
+        <span class="acao-texto">Veja todos os pets cadastrados na Petit Pet.</span>
+    </a>
+    <a class="acao-card acao-card--sair" href="logout.php">
+        <span class="acao-icone" aria-hidden="true">↩</span>
+        <span class="acao-titulo">Sair da conta</span>
+        <span class="acao-texto">Encerrar a sessão com segurança.</span>
+    </a>
 </section>
 
-<section class="secao" aria-labelledby="titulo-recentes">
+<section class="secao">
     <div class="secao-cabecalho">
-        <h2 class="secao-titulo" id="titulo-recentes">Últimos cadastros</h2>
-        <a class="secao-link" href="animais_cadastrados.php">Ver todos →</a>
+        <div>
+            <p class="eyebrow">Meus amigos</p>
+            <h2>Meus pets</h2>
+        </div>
+        <a class="link-seta" href="cadastrar_pet.php">Cadastrar novo <span aria-hidden="true">→</span></a>
     </div>
 
-    <?php if ($recentes): ?>
-        <div class="lista-recentes">
-            <?php foreach ($recentes as $pet): ?>
-                <article class="recente-item">
-                    <div class="recente-info">
-                        <p class="recente-nome"><?= e($pet['nome']) ?></p>
-                        <p class="recente-detalhe">
-                            <?= e($pet['especie']) ?><?= $pet['raca'] ? ' · ' . e($pet['raca']) : '' ?>
-                            <?php if (!empty($pet['tutor_nome'])): ?>
-                                · Tutor(a): <?= e($pet['tutor_nome']) ?>
-                            <?php endif; ?>
-                        </p>
+    <?php if ($erroConsulta): ?>
+        <div class="mensagem mensagem-erro" role="alert">
+            <span class="mensagem-icone" aria-hidden="true">!</span>
+            <p>Não foi possível carregar seus pets agora. Tente atualizar a página.</p>
+        </div>
+    <?php elseif ($pets): ?>
+        <div class="grade-pets">
+            <?php foreach ($pets as $pet): ?>
+                <div class="pet-card-wrapper">
+                    <?php $petCard = $pet; require __DIR__ . '/includes/cartao_pet.php'; ?>
+                    <div class="pet-card-acoes">
+                        <a class="btn btn-pequeno btn-contorno" href="editar_pet.php?id=<?= (int) $pet['id'] ?>">Editar</a>
+                        <form action="excluir_pet.php" method="post" data-confirmar="Remover <?= e($pet['nome']) ?> do seu cadastro?">
+                            <?= csrf_campo() ?>
+                            <input type="hidden" name="id" value="<?= (int) $pet['id'] ?>">
+                            <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                        </form>
                     </div>
-                    <span class="badge <?= e(classe_status((string) $pet['status'])) ?>">
-                        <?= e(rotulo_status((string) $pet['status'])) ?>
-                    </span>
-                </article>
+                </div>
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <div class="estado-vazio">
-            <div class="estado-vazio-icone" aria-hidden="true">🐾</div>
-            <h2>Nenhum pet cadastrado ainda</h2>
-            <p>Comece cadastrando o primeiro amigo para acompanhar os atendimentos.</p>
-            <a class="btn" href="cadastrar_animal.php">Cadastrar primeiro pet</a>
+        <div class="vazio">
+            <span class="vazio-icone" aria-hidden="true">🐾</span>
+            <h2>Você ainda não cadastrou nenhum pet</h2>
+            <p>Comece agora e mantenha as informações do seu amigo sempre organizadas.</p>
+            <a class="btn" href="cadastrar_pet.php">Cadastrar meu primeiro pet</a>
         </div>
     <?php endif; ?>
 </section>
-
-<div class="dica-navegacao">
-    <strong>Cuidado de perto:</strong> mantenha o cadastro dos pets atualizado para facilitar
-    o atendimento e a comunicação com os tutores.
-</div>
 
 <?php require __DIR__ . '/includes/layout/footer.php'; ?>

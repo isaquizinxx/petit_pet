@@ -40,24 +40,31 @@ function pet_dados_iniciais(): array
  *
  * @return array{0: string, 1: string, 2: array<int, mixed>}
  */
-function filtros_pets(string $busca, string $status): array
+function filtros_pets(string $busca, string $status, ?int $usuarioId = null): array
 {
     $condicoes = [];
     $tipos = '';
     $parametros = [];
 
     if ($busca !== '') {
-        $condicoes[] = '(nome LIKE ? OR especie LIKE ? OR raca LIKE ? OR tutor_nome LIKE ?)';
+        $condicoes[] = '(p.nome LIKE ? OR p.especie LIKE ? OR p.raca LIKE ? OR p.tutor_nome LIKE ?'
+            . ' OR u.nome LIKE ? OR u.email LIKE ?)';
         // Trata % e _ como texto comum, e não como curingas do LIKE.
         $like = '%' . addcslashes($busca, '%_\\') . '%';
-        $tipos .= 'ssss';
-        array_push($parametros, $like, $like, $like, $like);
+        $tipos .= 'ssssss';
+        array_push($parametros, $like, $like, $like, $like, $like, $like);
     }
 
     if (in_array($status, pet_status_validos(), true)) {
-        $condicoes[] = 'status = ?';
+        $condicoes[] = 'p.status = ?';
         $tipos .= 's';
         $parametros[] = $status;
+    }
+
+    if ($usuarioId !== null) {
+        $condicoes[] = 'p.usuario_id = ?';
+        $tipos .= 'i';
+        $parametros[] = $usuarioId;
     }
 
     $where = $condicoes ? 'WHERE ' . implode(' AND ', $condicoes) : '';
@@ -65,11 +72,13 @@ function filtros_pets(string $busca, string $status): array
     return [$where, $tipos, $parametros];
 }
 
-function contar_pets(string $busca = '', string $status = ''): int
+function contar_pets(string $busca = '', string $status = '', ?int $usuarioId = null): int
 {
-    [$where, $tipos, $parametros] = filtros_pets($busca, $status);
+    [$where, $tipos, $parametros] = filtros_pets($busca, $status, $usuarioId);
 
-    $stmt = db()->prepare('SELECT COUNT(*) AS total FROM pets ' . $where);
+    $stmt = db()->prepare(
+        'SELECT COUNT(*) AS total FROM pets p LEFT JOIN usuarios u ON u.id = p.usuario_id ' . $where
+    );
     if ($tipos !== '') {
         $stmt->bind_param($tipos, ...$parametros);
     }
@@ -80,21 +89,20 @@ function contar_pets(string $busca = '', string $status = ''): int
     return $total;
 }
 
-function listar_pets(string $busca = '', string $status = '', int $pagina = 1, int $porPagina = 8): array
+function listar_pets(string $busca = '', string $status = '', ?int $usuarioId = null): array
 {
-    [$where, $tipos, $parametros] = filtros_pets($busca, $status);
+    [$where, $tipos, $parametros] = filtros_pets($busca, $status, $usuarioId);
 
-    $porPagina = max(1, min(50, $porPagina));
-    $pagina = max(1, $pagina);
-    $offset = ($pagina - 1) * $porPagina;
-
-    $sql = 'SELECT * FROM pets ' . $where . ' ORDER BY nome ASC, id ASC LIMIT ? OFFSET ?';
-    $tipos .= 'ii';
-    $parametros[] = $porPagina;
-    $parametros[] = $offset;
+    $sql = 'SELECT p.*, u.nome AS cliente_nome, u.email AS cliente_email
+            FROM pets p
+            LEFT JOIN usuarios u ON u.id = p.usuario_id
+            ' . $where . '
+            ORDER BY p.nome ASC, p.id ASC';
 
     $stmt = db()->prepare($sql);
-    $stmt->bind_param($tipos, ...$parametros);
+    if ($tipos !== '') {
+        $stmt->bind_param($tipos, ...$parametros);
+    }
     $stmt->execute();
     $pets = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
@@ -102,9 +110,25 @@ function listar_pets(string $busca = '', string $status = '', int $pagina = 1, i
     return $pets;
 }
 
+/** Pets vinculados a uma conta de cliente. */
+function pets_do_cliente(int $usuarioId): array
+{
+    return listar_pets('', '', $usuarioId);
+}
+
+function contar_pets_do_cliente(int $usuarioId): int
+{
+    return contar_pets('', '', $usuarioId);
+}
+
 function buscar_pet(int $id): ?array
 {
-    $stmt = db()->prepare('SELECT * FROM pets WHERE id = ? LIMIT 1');
+    $stmt = db()->prepare(
+        'SELECT p.*, u.nome AS cliente_nome, u.email AS cliente_email
+         FROM pets p
+         LEFT JOIN usuarios u ON u.id = p.usuario_id
+         WHERE p.id = ? LIMIT 1'
+    );
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $pet = $stmt->get_result()->fetch_assoc();
@@ -113,12 +137,19 @@ function buscar_pet(int $id): ?array
     return $pet ?: null;
 }
 
-function criar_pet(array $dados): int
+/** Confere se o pet pertence à conta informada. */
+function pet_pertence_ao_usuario(array $pet, int $usuarioId): bool
+{
+    return isset($pet['usuario_id']) && (int) $pet['usuario_id'] === $usuarioId;
+}
+
+function criar_pet(array $dados, ?int $usuarioId = null): int
 {
     $stmt = db()->prepare(
         'INSERT INTO pets
-            (nome, especie, raca, sexo, data_nascimento, porte, tutor_nome, tutor_telefone, observacoes, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            (usuario_id, nome, especie, raca, sexo, data_nascimento, porte,
+             tutor_nome, tutor_telefone, observacoes, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     $nome = $dados['nome'];
@@ -133,7 +164,8 @@ function criar_pet(array $dados): int
     $status = $dados['status'];
 
     $stmt->bind_param(
-        'ssssssssss',
+        'issssssssss',
+        $usuarioId,
         $nome,
         $especie,
         $raca,
@@ -204,7 +236,7 @@ function excluir_pet(int $id): bool
     return $removeu;
 }
 
-/** Números exibidos no painel. */
+/** Números exibidos nos painéis. */
 function estatisticas_pets(): array
 {
     $sql = "SELECT
