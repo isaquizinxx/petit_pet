@@ -11,7 +11,7 @@ $padroes = [
     'db_host' => 'localhost',
     'db_usuario' => 'root',
     'db_senha' => 'root',
-    'db_nome' => 'biblioteca',
+    'db_nome' => 'petit_pet',
     'debug' => false,
 ];
 

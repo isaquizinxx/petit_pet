@@ -1,14 +1,11 @@
--- ============================================================================
--- Petit Pet — migração para a versão com duas áreas (cliente e administração)
+-- Petit Pet - migração para a versão com cliente e administração
 --
--- Execute UMA ÚNICA VEZ em um banco que já tenha as tabelas usuarios e pets:
---   mysql -u root -p biblioteca -e "source database/migrate_areas.sql"
+-- Use uma unica vez em um banco que ja tenha as tabelas usuarios e pets:
+--   mysql -u root -p petit_pet -e "source database/migrate_areas.sql"
 --
--- O MySQL 8 não aceita "ADD COLUMN IF NOT EXISTS", por isso não repita a
--- execução: as colunas já existirão.
--- ============================================================================
+-- O MySQL 8 nao aceita ADD COLUMN IF NOT EXISTS, entao nao repita a execução.
 
-USE biblioteca;
+USE petit_pet;
 
 ALTER TABLE usuarios
     ADD COLUMN telefone VARCHAR(30) DEFAULT NULL AFTER email,
@@ -23,12 +20,10 @@ ALTER TABLE pets
         ON DELETE SET NULL
         ON UPDATE CASCADE;
 
--- ----------------------------------------------------------------------------
 -- Contas de demonstração
---   Administrador: admin@petitpet.local / Admin@123
---   Cliente:       cliente@petitpet.local / Cliente@123
+--   admin@petitpet.local   / Admin@123
+--   cliente@petitpet.local / Cliente@123
 -- Troque as senhas antes de publicar o projeto.
--- ----------------------------------------------------------------------------
 
 INSERT INTO usuarios (nome, email, telefone, senha, perfil)
 VALUES (
@@ -58,10 +53,7 @@ ON DUPLICATE KEY UPDATE
     senha = VALUES(senha),
     perfil = VALUES(perfil);
 
--- ----------------------------------------------------------------------------
--- Vincula os pets de demonstração à cliente Ana Souza.
--- ----------------------------------------------------------------------------
-
+-- Liga os pets de exemplo a conta da Ana
 UPDATE pets p
 JOIN usuarios u ON u.email = 'cliente@petitpet.local'
 SET p.usuario_id = u.id

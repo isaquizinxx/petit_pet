@@ -1,15 +1,12 @@
--- ============================================================================
--- Petit Pet — estrutura para uma instalação nova
---
--- Execute este arquivo em um banco vazio. Se o banco já existe com a
--- estrutura antiga, use database/migrate_areas.sql.
--- ============================================================================
+-- Petit Pet - estrutura do banco para uma instalacao nova
+-- Execute em um servidor MySQL vazio. Se o banco ja existir com a
+-- estrutura antiga, use migrate_areas.sql.
 
-CREATE DATABASE IF NOT EXISTS biblioteca
+CREATE DATABASE IF NOT EXISTS petit_pet
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_0900_ai_ci;
 
-USE biblioteca;
+USE petit_pet;
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT NOT NULL AUTO_INCREMENT,

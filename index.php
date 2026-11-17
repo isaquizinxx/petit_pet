@@ -41,15 +41,15 @@ require __DIR__ . '/includes/layout/header.php';
         </div>
 
         <ul class="hero-lista">
-            <li><span aria-hidden="true">💗</span> Cadastro simples e rápido</li>
-            <li><span aria-hidden="true">🐾</span> Acompanhe cada pet de perto</li>
-            <li><span aria-hidden="true">📋</span> Informações sempre à mão</li>
+            <li><?= icone_svg('heart') ?> Cadastro simples e rápido</li>
+            <li><?= icone_svg('paw') ?> Acompanhe cada pet de perto</li>
+            <li><?= icone_svg('clipboard-list') ?> Informações sempre à mão</li>
         </ul>
     </div>
 
     <aside class="hero-card" aria-label="Resumo da Petit Pet">
         <div class="hero-card-topo">
-            <span class="hero-card-icone" aria-hidden="true">🐾</span>
+            <span class="hero-card-icone"><?= icone_svg('paw') ?></span>
             <p class="hero-card-titulo">Petit Pet</p>
             <p class="hero-card-texto">Cuidado que vira carinho, todos os dias.</p>
         </div>
@@ -71,7 +71,7 @@ require __DIR__ . '/includes/layout/header.php';
             </dl>
         <?php endif; ?>
 
-        <a class="hero-card-link" href="pets.php">Ver todos os pets <span aria-hidden="true">→</span></a>
+        <a class="hero-card-link" href="pets.php">Ver todos os pets <?= icone_svg('arrow-right') ?></a>
     </aside>
 </section>
 
@@ -81,7 +81,7 @@ require __DIR__ . '/includes/layout/header.php';
             <p class="eyebrow">Nossos amigos</p>
             <h2>Pets em destaque</h2>
         </div>
-        <a class="link-seta" href="pets.php">Ver todos <span aria-hidden="true">→</span></a>
+        <a class="link-seta" href="pets.php">Ver todos <?= icone_svg('arrow-right') ?></a>
     </div>
 
     <?php if ($destaques): ?>

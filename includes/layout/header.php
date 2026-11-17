@@ -25,7 +25,7 @@ $inicio = $area === 'admin' ? 'admin.php' : 'index.php';
     <meta name="description" content="<?= e($descricaoPagina) ?>">
     <meta name="theme-color" content="#ffceea">
     <title><?= e($titulo !== '' ? $titulo . ' | ' . APP_NOME : APP_NOME) ?></title>
-    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="assets/css/fontes.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -36,7 +36,7 @@ $inicio = $area === 'admin' ? 'admin.php' : 'index.php';
     <header class="topo">
         <div class="topo-conteudo">
             <a class="marca" href="<?= e($inicio) ?>" aria-label="Petit Pet — início">
-                <span class="marca-icone" aria-hidden="true">🐾</span>
+                <img class="marca-logo" src="logo.png" alt="">
                 <span class="marca-texto">Petit Pet</span>
             </a>
 
@@ -96,15 +96,15 @@ $inicio = $area === 'admin' ? 'admin.php' : 'index.php';
                     ? $flash['tipo']
                     : 'info';
                 $iconeFlash = [
-                    'sucesso' => '✓',
-                    'erro' => '!',
-                    'aviso' => '!',
-                    'info' => 'i',
+                    'sucesso' => 'circle-check',
+                    'erro' => 'circle-alert',
+                    'aviso' => 'circle-alert',
+                    'info' => 'circle-info',
                 ][$tipoFlash];
                 ?>
                 <div class="mensagem mensagem-<?= e($tipoFlash) ?>" role="<?= $tipoFlash === 'erro' ? 'alert' : 'status' ?>">
-                    <span class="mensagem-icone" aria-hidden="true"><?= e($iconeFlash) ?></span>
+                    <span class="mensagem-icone"><?= icone_svg($iconeFlash) ?></span>
                     <p><?= e($flash['mensagem'] ?? '') ?></p>
-                    <button type="button" class="mensagem-fechar" data-fechar-mensagem aria-label="Fechar mensagem">×</button>
+                    <button type="button" class="mensagem-fechar" data-fechar-mensagem aria-label="Fechar mensagem"><?= icone_svg('x') ?></button>
                 </div>
             <?php endforeach; ?>

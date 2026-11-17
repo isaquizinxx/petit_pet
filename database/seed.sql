@@ -1,17 +1,13 @@
--- ============================================================================
--- Petit Pet — dados de demonstração
+-- Petit Pet - dados de demonstração
+-- Opcional. Use apenas no ambiente local da apresentação.
 --
--- Opcional. Use apenas em ambiente local/escolar.
---
--- Contas criadas:
---   Administração: admin@petitpet.local   / Admin@123
---   Cliente:       cliente@petitpet.local / Cliente@123
+-- Contas:
+--   admin@petitpet.local   / Admin@123
+--   cliente@petitpet.local / Cliente@123
 --
 -- Troque as senhas antes de publicar o projeto.
--- Os INSERTs abaixo não duplicam pets se o arquivo for executado de novo.
--- ============================================================================
 
-USE biblioteca;
+USE petit_pet;
 
 INSERT INTO usuarios (nome, email, telefone, senha, perfil)
 VALUES (
@@ -41,8 +37,6 @@ ON DUPLICATE KEY UPDATE
     senha = VALUES(senha),
     perfil = VALUES(perfil);
 
--- Pets da cliente Ana Souza -------------------------------------------------
-
 INSERT INTO pets (
     usuario_id, nome, especie, raca, sexo, data_nascimento, porte,
     tutor_nome, tutor_telefone, observacoes, status
@@ -64,8 +58,6 @@ SELECT u.id, 'Luna', 'Gato', 'Siamês', 'femea', '2022-08-02', 'pequeno',
 FROM usuarios u
 WHERE u.email = 'cliente@petitpet.local'
   AND NOT EXISTS (SELECT 1 FROM pets WHERE nome = 'Luna');
-
--- Pets cadastrados pela administração --------------------------------------
 
 INSERT INTO pets (
     nome, especie, raca, sexo, data_nascimento, porte,
@@ -93,3 +85,7 @@ SELECT 'Nina', 'Gato', 'Sem raça definida', 'femea', '2019-11-05', 'medio',
        'Rafael Costa', '(41) 96666-7890',
        'Calma e independente.', 'em_atendimento'
 WHERE NOT EXISTS (SELECT 1 FROM pets WHERE nome = 'Nina');
+
+SELECT 'usuarios' AS tabela, COUNT(*) AS total FROM usuarios
+UNION ALL
+SELECT 'pets', COUNT(*) FROM pets;

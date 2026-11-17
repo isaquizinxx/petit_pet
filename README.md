@@ -1,31 +1,29 @@
 # 🐾 Petit Pet
 
-Projeto escolar em **PHP + MySQL** para cadastro e acompanhamento de pets, organizado em duas áreas simples:
+Projeto escolar em PHP + MySQL para cadastro e acompanhamento de pets, com duas áreas:
 
-- **Área dos clientes** — página inicial, cadastro, login, cadastro de pets, consulta e edição dos próprios pets.
-- **Área administrativa** — login restrito, painel resumido, gestão de clientes e de pets (criar, consultar, editar e excluir).
+- **Clientes:** página inicial, cadastro, login, cadastro de pets, consulta e edição dos próprios pets.
+- **Administração:** login restrito, painel resumido, gestão de clientes e de pets (criar, consultar, editar e excluir).
 
-O visual preserva a identidade original da Petit Pet: rosa bebê `#ffceea`, azul bebê `#99d6ff`, off-white rosado `#fff2f2`, fonte **Cherry Bomb One** nos títulos e **PT Serif** nos textos, com o logotipo 🐾 Petit Pet.
-
----
+O visual segue a identidade da Petit Pet: rosa bebê `#ffceea`, azul bebê `#99d6ff`, off-white rosado `#fff2f2`, fonte **Cherry Bomb One** nos títulos e **PT Serif** nos textos, com o logotipo 🐾 Petit Pet.
 
 ## Funcionalidades
 
-### Área dos clientes
+### Clientes
 
 - Página inicial com apresentação, pets em destaque e resumo.
 - Listagem pública de pets com busca e filtro por situação.
 - Página de detalhes do pet.
 - Cadastro de cliente com login automático após a criação da conta.
-- Login e logout com sessão segura.
+- Login e logout com sessão.
 - Painel do cliente com seus pets, atalhos e resumo.
 - Cadastro de pet vinculado à conta do cliente (tutor preenchido automaticamente).
 - Edição e exclusão apenas dos próprios pets.
-- O telefone do tutor não aparece publicamente; somente a administração e o próprio tutor visualizam.
+- O telefone do tutor não aparece publicamente; somente a administração e o próprio tutor veem esse dado.
 
-### Área administrativa
+### Administração
 
-- Login separado em `login.php?area=admin`, aceitando somente contas com perfil `admin`.
+- Login em `login.php?area=admin`, aceitando somente contas com perfil `admin`.
 - Painel com números simples: total de pets, disponíveis, em atendimento e clientes.
 - Lista de pets com busca por nome, espécie, raça, tutor, conta ou situação.
 - Cadastro, edição e exclusão de pets.
@@ -33,16 +31,12 @@ O visual preserva a identidade original da Petit Pet: rosa bebê `#ffceea`, azul
 - Cadastro, edição e exclusão de contas de clientes.
 - Ao excluir um cliente, os pets continuam cadastrados com os dados do tutor; apenas o vínculo com a conta é removido.
 
----
-
 ## Tecnologias
 
 - **PHP 8+** (testado em PHP 8.5)
 - **MySQL 8+**
 - HTML5, CSS3 e JavaScript sem frameworks
-- Fontes servidas localmente em `assets/fonts/` (sem depender do Google Fonts)
-
----
+- Fontes locais em `assets/fonts/` (sem Google Fonts)
 
 ## Como executar
 
@@ -50,7 +44,7 @@ O visual preserva a identidade original da Petit Pet: rosa bebê `#ffceea`, azul
 
 - PHP com extensões `mysqli` e `session`
 - MySQL 8 em execução
-- Um servidor local (XAMPP, Laragon, WAMP ou o servidor embutido do PHP)
+- XAMPP, Laragon, WAMP ou o servidor embutido do PHP
 
 ### 2. Configuração do banco
 
@@ -60,38 +54,28 @@ As credenciais padrão ficam em `config/config.php`:
 'db_host' => 'localhost',
 'db_usuario' => 'root',
 'db_senha' => 'root',
-'db_nome' => 'biblioteca',
+'db_nome' => 'petit_pet',
 ```
 
-Se o seu ambiente for diferente, copie `config/config.local.example.php` para `config/config.local.php` e ajuste os valores. Esse arquivo não é versionado.
+Se o ambiente for diferente, copie `config/config.local.example.php` para `config/config.local.php` e ajuste os valores. Esse arquivo não é versionado.
 
 Também é possível usar variáveis de ambiente: `PETIT_DB_HOST`, `PETIT_DB_USUARIO`, `PETIT_DB_SENHA`, `PETIT_DB_NOME` e `PETIT_DEBUG`.
 
-### 3. Criar a estrutura
+### 3. Criar o banco
 
-**Instalação nova** (banco vazio):
+O jeito mais simples é abrir `database/petit_pet_completo.sql` no MySQL Workbench, conectar na instância local e executar o script inteiro com **Ctrl+Shift+Enter**. Ele cria o banco `petit_pet`, as tabelas e os dados de demonstração.
 
-```bash
-mysql -u root -p --default-character-set=utf8mb4 -e "source database/schema.sql"
-```
-
-**Banco que já possui a estrutura antiga** (tabelas `usuarios` e `pets` sem as colunas novas):
+Pelo terminal:
 
 ```bash
-mysql -u root -p --default-character-set=utf8mb4 -e "source database/migrate_areas.sql"
+mysql -u root -p --default-character-set=utf8mb4 -e "source database/petit_pet_completo.sql"
 ```
 
-> A migração deve ser executada **uma única vez**. Ela adiciona `usuarios.telefone`, `usuarios.perfil`, `usuarios.criado_em`, `pets.usuario_id` e a chave estrangeira correspondente.
+Para uma instalação sem dados de exemplo, use `database/schema.sql` e depois, se quiser, `database/seed.sql`.
 
-### 4. Dados de demonstração (opcional)
+Se o banco já tiver a estrutura antiga (tabelas `usuarios` e `pets` sem as colunas novas), use `database/migrate_areas.sql` uma única vez. A migração adiciona `usuarios.telefone`, `usuarios.perfil`, `usuarios.criado_em`, `pets.usuario_id` e a chave estrangeira correspondente.
 
-```bash
-mysql -u root -p --default-character-set=utf8mb4 -e "source database/seed.sql"
-```
-
-O seed não duplica os pets se for executado novamente.
-
-### 5. Iniciar o servidor
+### 4. Iniciar o servidor
 
 Na pasta do projeto:
 
@@ -99,11 +83,7 @@ Na pasta do projeto:
 php -S 127.0.0.1:8010
 ```
 
-Acesse: <http://127.0.0.1:8010>
-
-Também funciona normalmente dentro do `htdocs` do XAMPP.
-
----
+Acesse <http://127.0.0.1:8010>. Também funciona dentro do `htdocs` do XAMPP.
 
 ## Contas de demonstração
 
@@ -112,11 +92,9 @@ Também funciona normalmente dentro do `htdocs` do XAMPP.
 | Cliente | `cliente@petitpet.local` | `Cliente@123` |
 | Administração | `admin@petitpet.local` | `Admin@123` |
 
-> **Importante:** troque essas senhas antes de publicar o projeto. As contas são apenas para a apresentação escolar.
+Troque essas senhas antes de publicar o projeto. As contas são apenas para a apresentação escolar.
 
 A cliente de demonstração **Ana Souza** já possui os pets **Mel** e **Luna** vinculados à conta.
-
----
 
 ## Estrutura de arquivos
 
@@ -129,6 +107,7 @@ petit_pet/
 ├── cadastro.php              Cadastro de cliente
 ├── logout.php                Encerramento da sessão
 ├── painel.php                Painel do cliente
+├── editar_conta.php          Atualização dos dados e da senha do cliente
 ├── cadastrar_pet.php         Cadastro de pet (cliente ou admin)
 ├── editar_pet.php            Edição de pet (cliente ou admin)
 ├── excluir_pet.php           Exclusão de pet (somente POST)
@@ -155,16 +134,16 @@ petit_pet/
 │   ├── fonts/                Cherry Bomb One e PT Serif
 │   ├── js/app.js             Confirmações e interações leves
 │   └── favicon.svg
+├── logo.png                  Logotipo usado no cabeçalho e no favicon
 ├── database/
+│   ├── petit_pet_completo.sql  Script único para o Workbench (estrutura + dados)
 │   ├── schema.sql            Estrutura para instalação nova
 │   ├── migrate_areas.sql     Migração para a versão com duas áreas
 │   └── seed.sql              Dados de demonstração
 └── README.md
 ```
 
----
-
-## Funcionamento das permissões
+## Permissões
 
 - `usuarios.perfil` define o tipo de conta: `cliente` ou `admin`.
 - Páginas administrativas usam `exigir_admin()`; clientes são redirecionados ao próprio painel.
@@ -174,24 +153,19 @@ petit_pet/
 - A administração pode editar qualquer pet, definir a situação e manter dados de tutor livres.
 - Ao criar um pet pela área do cliente, o nome e o telefone do tutor vêm da conta; a situação inicia como **Disponível**.
 
----
-
-## Segurança implementada
+## Segurança
 
 - Consultas preparadas em todas as operações com o banco.
 - Escape de HTML na exibição de dados.
-- Tokens CSRF em formulários de escrita.
-- Senhas com `password_hash()` / `password_verify()`.
+- Tokens CSRF nos formulários de escrita.
+- Senhas com `password_hash()` e `password_verify()`.
 - Sessão com cookie `HttpOnly`, `SameSite=Lax` e regeneração de ID no login.
 - Bloqueio temporário após cinco tentativas de login inválidas.
 - Cabeçalhos de segurança básicos (`nosniff`, `SAMEORIGIN`, `Referrer-Policy`).
 - Exclusões somente por `POST`.
 - Telefone do tutor protegido na área pública.
 
----
-
 ## Observações para a apresentação
 
-- Não há gráficos, integrações externas nem funcionalidades simuladas: todos os cadastros, consultas, edições e exclusões usam o banco de dados real.
-- O banco mantém o nome `biblioteca` por compatibilidade com o ambiente escolar original.
+- Não há gráficos, integrações externas nem funcionalidades simuladas: cadastros, consultas, edições e exclusões usam o banco de dados real.
 - Contas antigas de teste podem aparecer na lista de clientes; elas podem ser removidas pela área administrativa.

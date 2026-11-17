@@ -1,12 +1,10 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
-
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id || $id < 1) {
     flash('erro', 'O pet solicitado não foi encontrado.');
     redirecionar('pets.php');
 }
-
 try {
     $pet = buscar_pet((int) $id);
 } catch (Throwable $erro) {
@@ -14,38 +12,31 @@ try {
     flash('erro', 'Não foi possível consultar o pet agora.');
     redirecionar('pets.php');
 }
-
 if (!$pet) {
     flash('erro', 'O pet solicitado não foi encontrado.');
     redirecionar('pets.php');
 }
-
 $souTutor = usuario_logado() && !eh_admin() && pet_pertence_ao_usuario($pet, (int) usuario_id());
 $podeEditar = eh_admin() || $souTutor;
 $podeVerContato = eh_admin() || $souTutor;
-
 $tutorExibicao = (string) ($pet['tutor_nome'] ?? '');
 if ($tutorExibicao === '') {
     $tutorExibicao = (string) ($pet['cliente_nome'] ?? '');
 }
-
 $titulo = (string) $pet['nome'];
 $subtitulo = 'Informações e cuidados de ' . $pet['nome'] . '.';
 $eyebrow = 'Detalhes do pet';
 $paginaAtiva = 'pets';
 $descricaoPagina = 'Detalhes do pet ' . $pet['nome'] . ' na Petit Pet.';
-
 require __DIR__ . '/includes/layout/header.php';
 ?>
-
 <article class="detalhe-pet">
     <div class="detalhe-foto">
-        <span class="detalhe-emoji" aria-hidden="true"><?= emoji_especie($pet['especie']) ?></span>
+        <span class="detalhe-icone"><?= icone_svg('paw') ?></span>
         <span class="selo <?= e(classe_status((string) $pet['status'])) ?>">
             <?= e(rotulo_status((string) $pet['status'])) ?>
         </span>
     </div>
-
     <div class="detalhe-conteudo">
         <dl class="detalhe-lista">
             <div>
@@ -88,14 +79,12 @@ require __DIR__ . '/includes/layout/header.php';
                 </div>
             <?php endif; ?>
         </dl>
-
         <div class="detalhe-observacoes">
             <h2>Observações</h2>
             <p><?= nl2br(e($pet['observacoes'] ?: 'Nenhuma observação registrada.')) ?></p>
         </div>
-
         <div class="detalhe-acoes">
-            <a class="btn btn-contorno" href="pets.php">← Voltar para os pets</a>
+            <a class="btn btn-contorno" href="pets.php"><?= icone_svg('arrow-left') ?> Voltar para os pets</a>
             <?php if ($podeEditar): ?>
                 <a class="btn" href="editar_pet.php?id=<?= (int) $pet['id'] ?>">Editar pet</a>
             <?php endif; ?>
@@ -105,11 +94,9 @@ require __DIR__ . '/includes/layout/header.php';
         </div>
     </div>
 </article>
-
 <?php if (!$podeVerContato): ?>
     <p class="nota-privacidade">
         Os dados de contato do tutor ficam visíveis apenas para a administração e para o próprio tutor.
     </p>
 <?php endif; ?>
-
 <?php require __DIR__ . '/includes/layout/footer.php'; ?>

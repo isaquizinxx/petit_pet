@@ -1,30 +1,21 @@
--- ============================================================================
--- Petit Pet — script completo para MySQL Workbench
+-- Petit Pet - banco de dados completo
+-- Projeto escolar de PHP + MySQL
 --
--- Como usar:
---   1. Abra este arquivo no MySQL Workbench.
---   2. Conecte-se ao servidor MySQL local.
---   3. Execute tudo com Ctrl+Shift+Enter (ou o raio ⚡).
+-- Como executar no MySQL Workbench:
+-- 1. Abra este arquivo.
+-- 2. Conecte na instância local.
+-- 3. Rode o script inteiro com Ctrl+Shift+Enter.
 --
--- O script cria o banco "biblioteca", as tabelas e os dados de demonstração.
--- Pode ser executado mais de uma vez: não duplica contas nem pets.
---
--- Contas criadas:
---   Administração: admin@petitpet.local   / Admin@123
---   Cliente:       cliente@petitpet.local / Cliente@123
--- Troque as senhas antes de publicar o projeto.
--- ============================================================================
+-- Pode executar mais de uma vez: as tabelas usam IF NOT EXISTS
+-- e os dados de exemplo não são duplicados.
 
-CREATE DATABASE IF NOT EXISTS biblioteca
+CREATE DATABASE IF NOT EXISTS petit_pet
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_0900_ai_ci;
 
-USE biblioteca;
+USE petit_pet;
 
--- ----------------------------------------------------------------------------
--- Tabelas
--- ----------------------------------------------------------------------------
-
+-- Tabela de contas (clientes e administração)
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(100) NOT NULL,
@@ -38,6 +29,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     KEY idx_usuarios_perfil (perfil)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- Tabela de pets
 CREATE TABLE IF NOT EXISTS pets (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     usuario_id INT DEFAULT NULL,
@@ -64,10 +56,7 @@ CREATE TABLE IF NOT EXISTS pets (
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- ----------------------------------------------------------------------------
--- Contas de demonstração
--- ----------------------------------------------------------------------------
-
+-- Conta da administração: admin@petitpet.local / Admin@123
 INSERT INTO usuarios (nome, email, telefone, senha, perfil)
 VALUES (
     'Administração Petit Pet',
@@ -82,6 +71,7 @@ ON DUPLICATE KEY UPDATE
     senha = VALUES(senha),
     perfil = VALUES(perfil);
 
+-- Conta de cliente: cliente@petitpet.local / Cliente@123
 INSERT INTO usuarios (nome, email, telefone, senha, perfil)
 VALUES (
     'Ana Souza',
@@ -96,10 +86,7 @@ ON DUPLICATE KEY UPDATE
     senha = VALUES(senha),
     perfil = VALUES(perfil);
 
--- ----------------------------------------------------------------------------
--- Pets da cliente Ana Souza
--- ----------------------------------------------------------------------------
-
+-- Pets da Ana
 INSERT INTO pets (
     usuario_id, nome, especie, raca, sexo, data_nascimento, porte,
     tutor_nome, tutor_telefone, observacoes, status
@@ -122,10 +109,7 @@ FROM usuarios u
 WHERE u.email = 'cliente@petitpet.local'
   AND NOT EXISTS (SELECT 1 FROM pets WHERE nome = 'Luna');
 
--- ----------------------------------------------------------------------------
 -- Pets cadastrados pela administração
--- ----------------------------------------------------------------------------
-
 INSERT INTO pets (
     nome, especie, raca, sexo, data_nascimento, porte,
     tutor_nome, tutor_telefone, observacoes, status
@@ -153,10 +137,7 @@ SELECT 'Nina', 'Gato', 'Sem raça definida', 'femea', '2019-11-05', 'medio',
        'Calma e independente.', 'em_atendimento'
 WHERE NOT EXISTS (SELECT 1 FROM pets WHERE nome = 'Nina');
 
--- ----------------------------------------------------------------------------
--- Conferência rápida
--- ----------------------------------------------------------------------------
-
+-- Conferencia
 SELECT 'usuarios' AS tabela, COUNT(*) AS total FROM usuarios
 UNION ALL
 SELECT 'pets', COUNT(*) FROM pets;

@@ -23,7 +23,7 @@ $meta = array_filter([
 ?>
 <article class="pet-card">
     <a class="pet-card-link" href="pet.php?id=<?= $petCardId ?>">
-        <span class="pet-foto" aria-hidden="true"><?= emoji_especie($petCardEspecie) ?></span>
+        <span class="pet-foto"><?= icone_svg('paw') ?></span>
         <span class="pet-conteudo">
             <span class="pet-linha">
                 <span class="pet-nome"><?= e($petCardNome) ?></span>
@@ -33,7 +33,7 @@ $meta = array_filter([
             <?php if ($mostrarTutor && $petCardTutor !== ''): ?>
                 <span class="pet-tutor">Tutor: <?= e($petCardTutor) ?></span>
             <?php endif; ?>
-            <span class="pet-ver">Ver detalhes <span aria-hidden="true">→</span></span>
+            <span class="pet-ver">Ver detalhes <?= icone_svg('arrow-right') ?></span>
         </span>
     </a>
 </article>

@@ -72,7 +72,7 @@ require __DIR__ . '/includes/layout/header.php';
 
 <?php if ($erros): ?>
     <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
         <p>Confira os campos destacados e tente novamente.</p>
     </div>
 <?php endif; ?>

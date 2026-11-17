@@ -48,17 +48,22 @@ require __DIR__ . '/includes/layout/header.php';
 
 <section class="acoes-rapidas" aria-label="Ações rápidas">
     <a class="acao-card" href="cadastrar_pet.php">
-        <span class="acao-icone" aria-hidden="true">➕</span>
+        <span class="acao-icone"><?= icone_svg('plus') ?></span>
         <span class="acao-titulo">Cadastrar pet</span>
         <span class="acao-texto">Adicione um novo amigo ao seu painel.</span>
     </a>
     <a class="acao-card" href="pets.php">
-        <span class="acao-icone" aria-hidden="true">🔎</span>
+        <span class="acao-icone"><?= icone_svg('search') ?></span>
         <span class="acao-titulo">Explorar pets</span>
         <span class="acao-texto">Veja todos os pets cadastrados na Petit Pet.</span>
     </a>
+    <a class="acao-card" href="editar_conta.php">
+        <span class="acao-icone"><?= icone_svg('user') ?></span>
+        <span class="acao-titulo">Meu cadastro</span>
+        <span class="acao-texto">Atualize seus dados pessoais e sua senha.</span>
+    </a>
     <a class="acao-card acao-card--sair" href="logout.php">
-        <span class="acao-icone" aria-hidden="true">↩</span>
+        <span class="acao-icone"><?= icone_svg('log-out') ?></span>
         <span class="acao-titulo">Sair da conta</span>
         <span class="acao-texto">Encerrar a sessão com segurança.</span>
     </a>
@@ -70,12 +75,12 @@ require __DIR__ . '/includes/layout/header.php';
             <p class="eyebrow">Meus amigos</p>
             <h2>Meus pets</h2>
         </div>
-        <a class="link-seta" href="cadastrar_pet.php">Cadastrar novo <span aria-hidden="true">→</span></a>
+        <a class="link-seta" href="cadastrar_pet.php">Cadastrar novo <?= icone_svg('arrow-right') ?></a>
     </div>
 
     <?php if ($erroConsulta): ?>
         <div class="mensagem mensagem-erro" role="alert">
-            <span class="mensagem-icone" aria-hidden="true">!</span>
+            <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
             <p>Não foi possível carregar seus pets agora. Tente atualizar a página.</p>
         </div>
     <?php elseif ($pets): ?>
@@ -96,7 +101,7 @@ require __DIR__ . '/includes/layout/header.php';
         </div>
     <?php else: ?>
         <div class="vazio">
-            <span class="vazio-icone" aria-hidden="true">🐾</span>
+            <span class="vazio-icone"><?= icone_svg('paw') ?></span>
             <h2>Você ainda não cadastrou nenhum pet</h2>
             <p>Comece agora e mantenha as informações do seu amigo sempre organizadas.</p>
             <a class="btn" href="cadastrar_pet.php">Cadastrar meu primeiro pet</a>

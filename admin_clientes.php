@@ -135,7 +135,7 @@ require __DIR__ . '/includes/layout/header.php';
 
 <?php if ($errosCliente): ?>
     <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
         <p>Confira os campos destacados e tente novamente.</p>
     </div>
 <?php endif; ?>
@@ -225,7 +225,7 @@ require __DIR__ . '/includes/layout/header.php';
 
     <?php if ($erroConsulta): ?>
         <div class="mensagem mensagem-erro" role="alert">
-            <span class="mensagem-icone" aria-hidden="true">!</span>
+            <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
             <p>Não foi possível carregar os clientes agora. Tente atualizar a página.</p>
         </div>
     <?php elseif ($clientes): ?>
@@ -264,7 +264,7 @@ require __DIR__ . '/includes/layout/header.php';
         </div>
     <?php else: ?>
         <div class="vazio">
-            <span class="vazio-icone" aria-hidden="true">👤</span>
+            <span class="vazio-icone"><?= icone_svg('user') ?></span>
             <h2>Nenhum cliente encontrado</h2>
             <p><?= $busca !== '' ? 'Tente outra busca.' : 'Cadastre a primeira conta de cliente acima.' ?></p>
         </div>

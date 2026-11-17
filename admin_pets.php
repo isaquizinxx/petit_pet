@@ -54,7 +54,7 @@ require __DIR__ . '/includes/layout/header.php';
         <?php endif; ?>
     </form>
 
-    <a class="btn" href="cadastrar_pet.php">+ Novo pet</a>
+    <a class="btn" href="cadastrar_pet.php"><?= icone_svg('plus') ?> Novo pet</a>
 </div>
 
 <p class="resultado-info">
@@ -63,7 +63,7 @@ require __DIR__ . '/includes/layout/header.php';
 
 <?php if ($erroConsulta): ?>
     <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
         <p>Não foi possível carregar a lista agora. Tente atualizar a página.</p>
     </div>
 <?php elseif ($pets): ?>
@@ -125,7 +125,7 @@ require __DIR__ . '/includes/layout/header.php';
     </div>
 <?php else: ?>
     <div class="vazio">
-        <span class="vazio-icone" aria-hidden="true">🐾</span>
+        <span class="vazio-icone"><?= icone_svg('paw') ?></span>
         <h2>Nenhum pet encontrado</h2>
         <p><?= $busca !== '' || $status !== '' ? 'Tente outra busca ou remova os filtros.' : 'Cadastre o primeiro pet da Petit Pet.' ?></p>
         <a class="btn" href="cadastrar_pet.php">Cadastrar pet</a>

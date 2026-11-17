@@ -107,19 +107,34 @@ function rotulo_porte(?string $porte): string
     };
 }
 
-/** Emoji decorativo de acordo com a espécie informada. */
-function emoji_especie(?string $especie): string
+/** Retorna um ícone SVG padronizado para uso na interface. */
+function icone_svg(string $nome): string
 {
-    $especie = strtolower((string) $especie);
+    static $icones = [
+        'paw' => '<ellipse cx="5.5" cy="8" rx="1.5" ry="2"/><ellipse cx="9.5" cy="5" rx="1.5" ry="2"/><ellipse cx="14.5" cy="5" rx="1.5" ry="2"/><ellipse cx="18.5" cy="8" rx="1.5" ry="2"/><path d="M12 12c-3 0-6 4-6 7a2 2 0 0 0 2 2c1 0 2.5-.8 4-.8s3 .8 4 .8a2 2 0 0 0 2-2c0-3-3-7-6-7z"/>',
+        'heart' => '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"/>',
+        'clipboard-list' => '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 12h8M8 16h8"/>',
+        'stethoscope' => '<path d="M6 3v5a4 4 0 0 0 8 0V3"/><path d="M6 5H4m10 0h2"/><path d="M10 12v2a6 6 0 0 0 12 0v-1"/><circle cx="22" cy="11" r="2"/>',
+        'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+        'user' => '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+        'plus' => '<path d="M12 5v14M5 12h14"/>',
+        'search' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',
+        'log-out' => '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+        'arrow-right' => '<path d="M5 12h14m-7-7 7 7-7 7"/>',
+        'arrow-left' => '<path d="M19 12H5m7 7-7-7 7-7"/>',
+        'circle-check' => '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+        'circle-alert' => '<circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>',
+        'circle-info' => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/>',
+        'x' => '<path d="m18 6-12 12M6 6l12 12"/>',
+    ];
 
-    return match (true) {
-        str_contains($especie, 'gato') => '🐱',
-        str_contains($especie, 'cachorro') || str_contains($especie, 'cão') => '🐶',
-        str_contains($especie, 'coelho') => '🐰',
-        str_contains($especie, 'ave') || str_contains($especie, 'pássaro') => '🐦',
-        str_contains($especie, 'hamster') => '🐹',
-        default => '🐾',
-    };
+    if (!isset($icones[$nome])) {
+        return '';
+    }
+
+    return '<svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'
+        . $icones[$nome]
+        . '</svg>';
 }
 
 /** Calcula a idade em anos, meses ou dias a partir da data de nascimento. */
@@ -290,6 +305,23 @@ function validar_cliente_admin(array $dados, bool $senhaObrigatoria): array
 
     if (($dados['senha'] ?? '') !== '' && (strlen($dados['senha']) < 8 || strlen($dados['senha']) > 72)) {
         $erros['senha'] = 'A senha deve ter entre 8 e 72 caracteres.';
+    }
+
+    return $erros;
+}
+
+function validar_edicao_conta_cliente(array $dados): array
+{
+    $erros = dados_cliente_validos($dados);
+    $senha = (string) ($dados['senha'] ?? '');
+    $confirmacao = (string) ($dados['senha_confirmacao'] ?? '');
+
+    if ($senha !== '' && (strlen($senha) < 8 || strlen($senha) > 72)) {
+        $erros['senha'] = 'A nova senha deve ter entre 8 e 72 caracteres.';
+    }
+
+    if ($senha !== $confirmacao) {
+        $erros['senha_confirmacao'] = 'As senhas não coincidem.';
     }
 
     return $erros;

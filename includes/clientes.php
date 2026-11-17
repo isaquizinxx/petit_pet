@@ -55,6 +55,19 @@ function buscar_usuario(int $id): ?array
     return $usuario ?: null;
 }
 
+function senha_atual_confere(int $id, string $senha): bool
+{
+    $stmt = db()->prepare(
+        "SELECT senha FROM usuarios WHERE id = ? AND perfil = 'cliente' LIMIT 1"
+    );
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $usuario = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    return $usuario !== null && password_verify($senha, (string) $usuario['senha']);
+}
+
 /** Confere se o e-mail já pertence a outro usuário. */
 function email_em_uso(string $email, ?int $ignorarId = null): bool
 {

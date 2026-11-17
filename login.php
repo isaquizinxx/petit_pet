@@ -61,7 +61,7 @@ require __DIR__ . '/includes/layout/header.php';
 
 <?php if ($mensagemErro !== ''): ?>
     <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
         <p><?= e($mensagemErro) ?></p>
     </div>
 <?php endif; ?>

@@ -30,29 +30,29 @@ require __DIR__ . '/includes/layout/header.php';
 
 <?php if ($erroConsulta): ?>
     <div class="mensagem mensagem-erro" role="alert">
-        <span class="mensagem-icone" aria-hidden="true">!</span>
+        <span class="mensagem-icone"><?= icone_svg('circle-alert') ?></span>
         <p>Não foi possível carregar os números do painel agora. Tente atualizar a página.</p>
     </div>
 <?php endif; ?>
 
 <section class="stats-grid" aria-label="Resumo da Petit Pet">
     <article class="stat-card">
-        <span class="stat-icone" aria-hidden="true">🐾</span>
+        <span class="stat-icone"><?= icone_svg('paw') ?></span>
         <span class="stat-numero"><?= (int) $estatisticas['total'] ?></span>
         <span class="stat-rotulo">Pets cadastrados</span>
     </article>
     <article class="stat-card">
-        <span class="stat-icone" aria-hidden="true">💗</span>
+        <span class="stat-icone"><?= icone_svg('heart') ?></span>
         <span class="stat-numero"><?= (int) $estatisticas['disponiveis'] ?></span>
         <span class="stat-rotulo">Disponíveis</span>
     </article>
     <article class="stat-card">
-        <span class="stat-icone" aria-hidden="true">🩺</span>
+        <span class="stat-icone"><?= icone_svg('stethoscope') ?></span>
         <span class="stat-numero"><?= (int) $estatisticas['em_atendimento'] ?></span>
         <span class="stat-rotulo">Em atendimento</span>
     </article>
     <article class="stat-card">
-        <span class="stat-icone" aria-hidden="true">👥</span>
+        <span class="stat-icone"><?= icone_svg('users') ?></span>
         <span class="stat-numero"><?= $totalClientes ?></span>
         <span class="stat-rotulo">Clientes cadastrados</span>
     </article>
@@ -60,17 +60,17 @@ require __DIR__ . '/includes/layout/header.php';
 
 <section class="acoes-rapidas" aria-label="Atalhos administrativos">
     <a class="acao-card" href="admin_pets.php">
-        <span class="acao-icone" aria-hidden="true">📋</span>
+        <span class="acao-icone"><?= icone_svg('clipboard-list') ?></span>
         <span class="acao-titulo">Gerenciar pets</span>
         <span class="acao-texto">Consultar, editar e remover pets cadastrados.</span>
     </a>
     <a class="acao-card" href="admin_clientes.php">
-        <span class="acao-icone" aria-hidden="true">👤</span>
+        <span class="acao-icone"><?= icone_svg('user') ?></span>
         <span class="acao-titulo">Gerenciar clientes</span>
         <span class="acao-texto">Cadastrar e atualizar contas de clientes.</span>
     </a>
     <a class="acao-card" href="cadastrar_pet.php">
-        <span class="acao-icone" aria-hidden="true">➕</span>
+        <span class="acao-icone"><?= icone_svg('plus') ?></span>
         <span class="acao-titulo">Novo pet</span>
         <span class="acao-texto">Cadastrar um pet com os dados do tutor.</span>
     </a>
@@ -82,7 +82,7 @@ require __DIR__ . '/includes/layout/header.php';
             <p class="eyebrow">Últimos cadastros</p>
             <h2>Pets recentes</h2>
         </div>
-        <a class="link-seta" href="admin_pets.php">Ver todos <span aria-hidden="true">→</span></a>
+        <a class="link-seta" href="admin_pets.php">Ver todos <?= icone_svg('arrow-right') ?></a>
     </div>
 
     <?php if ($petsRecentes): ?>
@@ -130,7 +130,7 @@ require __DIR__ . '/includes/layout/header.php';
             <p class="eyebrow">Contas recentes</p>
             <h2>Clientes recentes</h2>
         </div>
-        <a class="link-seta" href="admin_clientes.php">Ver todos <span aria-hidden="true">→</span></a>
+        <a class="link-seta" href="admin_clientes.php">Ver todos <?= icone_svg('arrow-right') ?></a>
     </div>
 
     <?php if ($clientesRecentes): ?>
