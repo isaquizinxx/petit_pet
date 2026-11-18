@@ -1,0 +1,59 @@
+databases:
+  - name: petit_pet_db
+    databaseName: petit_pet
+    plan: free
+
+databases:
+  - name: petit_pet_db
+    databaseName: petit_pet
+    ipAllowList: []
+    plan: free
+    mysqlPlan: free
+
+services:
+  - type: web
+    name: petitpet
+    env: php
+    buildCommand: |
+      # Instalar dependências do PHP se houver
+      if [ -f composer.json ]; then
+        composer install --no-dev --optimize-autoloader --no-interaction --quiet
+      fi
+    startCommand: |
+      php -S 0.0.0.0:$PORT -t .
+    buildFilter:
+      paths:
+        - include:
+          - '**'
+          - exclude:
+            - '.git'
+            - '.gitignore'
+            - 'README.md'
+            - 'render.yaml'
+            - 'database/*.sql'
+    plan: free
+    region: oregon
+    autoDeploy: true
+    domains:
+      - petitpet.onrender.com
+    envVars:
+      - key: PHP_VERSION
+        value: 8.4
+      - key: PETIT_DB_HOST
+        fromDatabase:
+          name: petit_pet_db
+          property: IP
+      - key: PETIT_DB_USUARIO
+        fromDatabase:
+          name: petit_pet_db
+          property: USERNAME
+      - key: PETIT_DB_SENHA
+        fromDatabase:
+          name: petit_pet_db
+          property: PASSWORD
+      - key: PETIT_DB_NOME
+        fromDatabase:
+          name: petit_pet_db
+          property: DATABASE
+      - key: PETIT_DEBUG
+        value: false
